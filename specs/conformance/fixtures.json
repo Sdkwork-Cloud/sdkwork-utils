@@ -1,0 +1,273 @@
+{
+  "version": "0.9.0",
+  "string": {
+    "is_blank": [
+      { "input": null, "output": true },
+      { "input": "", "output": true },
+      { "input": "  \t", "output": true },
+      { "input": "a", "output": false }
+    ],
+    "trim": [{ "input": "  hello  ", "output": "hello" }],
+    "truncate": [{ "input": "abcdef", "max_len": 5, "suffix": "...", "output": "ab..." }],
+    "capitalize": [{ "input": "hello", "output": "Hello" }],
+    "camel_case": [{ "input": "hello_world", "output": "helloWorld" }],
+    "snake_case": [{ "input": "HelloWorld", "output": "hello_world" }],
+    "kebab_case": [{ "input": "Hello World", "output": "hello-world" }],
+    "slugify": [{ "input": "Hello, SDKWork!", "output": "hello-sdk-work" }],
+    "mask": [{ "input": "1234567890", "visible_start": 2, "visible_end": 2, "output": "12******90" }],
+    "pad_start": [{ "input": "42", "target_len": 5, "output": "   42" }],
+    "pad_end": [{ "input": "42", "target_len": 5, "output": "42   " }],
+    "starts_with": [{ "input": "hello world", "prefix": "hello", "output": true }],
+    "ends_with": [{ "input": "hello world", "suffix": "world", "output": true }],
+    "contains": [{ "input": "hello world", "substring": "lo wo", "output": true }],
+    "replace_all": [{ "input": "a-b-a", "search": "a", "replacement": "x", "output": "x-b-x" }],
+    "split": [{ "input": "a, b ,c", "delimiter": ",", "trim_parts": true, "output": ["a", "b", "c"] }],
+    "join": [{ "parts": ["a", "b", "c"], "separator": "/", "output": "a/b/c" }],
+    "repeat": [{ "input": "ab", "count": 3, "output": "ababab" }],
+    "normalize_whitespace": [{ "input": "  hello   world  ", "output": "hello world" }],
+    "template": [
+      { "template": "Hello {name}!", "values": { "name": "Ada" }, "output": "Hello Ada!" },
+      { "template": "{a}{b}", "values": { "a": "1" }, "output": "1{b}" }
+    ]
+  },
+  "datetime": {
+    "now": [{ "valid": true }],
+    "format": [{ "input": "2024-01-01T00:00:00.000Z", "output": "2024-01-01T00:00:00.000Z" }],
+    "parse": [{ "input": "2024-01-01T00:00:00.000Z", "valid": true }],
+    "diff_millis": {
+      "earlier": "2024-01-01T00:00:00.000Z",
+      "later": "2024-01-01T02:00:00.000Z",
+      "output": 7200000
+    },
+    "add_days": [{ "input": "2024-01-01T00:00:00.000Z", "days": 1, "output": "2024-01-02T00:00:00.000Z" }],
+    "add_hours": [{ "input": "2024-01-01T00:00:00.000Z", "hours": 2, "output": "2024-01-01T02:00:00.000Z" }],
+    "add_minutes": [{ "input": "2024-01-01T00:00:00.000Z", "minutes": 30, "output": "2024-01-01T00:30:00.000Z" }],
+    "is_before": [
+      { "left": "2024-01-01T00:00:00.000Z", "right": "2024-01-02T00:00:00.000Z", "output": true }
+    ],
+    "is_after": [
+      { "left": "2024-01-02T00:00:00.000Z", "right": "2024-01-01T00:00:00.000Z", "output": true }
+    ],
+    "start_of_day_utc": [{ "input": "2024-01-01T15:30:00.000Z", "output": "2024-01-01T00:00:00.000Z" }],
+    "end_of_day_utc": [{ "input": "2024-01-01T15:30:00.000Z", "output": "2024-01-01T23:59:59.999Z" }],
+    "to_unix_millis": [{ "input": "2024-01-01T00:00:00.000Z", "output": 1704067200000 }],
+    "from_unix_millis": [{ "input": 1704067200000, "output": "2024-01-01T00:00:00.000Z" }],
+    "is_same_instant": [
+      { "left": "2024-01-01T00:00:00.000Z", "right": "2024-01-01T00:00:00.000Z", "output": true },
+      { "left": "2024-01-01T00:00:00.000Z", "right": "2024-01-01T00:00:01.000Z", "output": false }
+    ]
+  },
+  "encoding": {
+    "base64_encode": [{ "input": "hello", "output": "aGVsbG8=" }],
+    "base64_decode": [{ "input": "aGVsbG8=", "output": "hello" }],
+    "hex_encode": [{ "input": "hello", "output": "68656c6c6f" }],
+    "hex_decode": [{ "input": "68656c6c6f", "output": "hello" }],
+    "url_encode": [{ "input": "hello world", "output": "hello%20world" }],
+    "url_decode": [{ "input": "hello%20world", "output": "hello world" }],
+    "base64url_encode": [{ "input": "hello", "output": "aGVsbG8" }],
+    "base64url_decode": [{ "input": "aGVsbG8", "output": "hello" }]
+  },
+  "object": {
+    "deep_merge": {
+      "base": { "a": 1, "nested": { "x": 1 } },
+      "overlay": { "b": 2, "nested": { "y": 2 } },
+      "output": { "a": 1, "b": 2, "nested": { "x": 1, "y": 2 } }
+    },
+    "shallow_merge": {
+      "base": { "a": 1, "nested": { "x": 1 } },
+      "overlay": { "b": 2, "nested": { "y": 2 } },
+      "output": { "a": 1, "b": 2, "nested": { "y": 2 } }
+    },
+    "set_get_path": {
+      "path": "user.city",
+      "value": "Paris",
+      "output": "Paris"
+    },
+    "get_path": [{ "source": { "user": { "name": "Ada" } }, "path": "user.name", "output": "Ada" }],
+    "set_path": [{ "path": "user.city", "value": "Paris", "read_back": "Paris" }],
+    "pick": [{ "source": { "a": 1, "b": 2, "c": 3 }, "keys": ["a", "c"], "output": { "a": 1, "c": 3 } }],
+    "omit": [{ "source": { "a": 1, "b": 2, "c": 3 }, "keys": ["b"], "output": { "a": 1, "c": 3 } }],
+    "compact": [{ "input": { "a": 1, "b": null, "c": 3 }, "output": { "a": 1, "c": 3 } }],
+    "has_path": [{ "path": "user.name", "exists": true }, { "path": "user.missing", "exists": false }],
+    "keys": [{ "input": { "b": 2, "a": 1 }, "output": ["b", "a"] }],
+    "values": [{ "input": { "b": 2, "a": 1 }, "output": [2, 1] }]
+  },
+  "crypto": {
+    "sha256_hash": [
+      {
+        "input": "hello",
+        "output": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      }
+    ],
+    "hmac_sha256": [
+      {
+        "input": "payload",
+        "secret": "secret",
+        "output": "b82fcb791acec57859b989b430a826488ce2e479fdf92326bd0a2e8375a42ba4"
+      }
+    ],
+    "secure_compare": [
+      { "left": "secret", "right": "secret", "output": true },
+      { "left": "secret", "right": "other", "output": false }
+    ]
+  },
+  "number": {
+    "clamp": [{ "value": 5, "min": 0, "max": 3, "output": 3 }],
+    "round": [{ "value": 1.235, "decimals": 2, "output": 1.24 }],
+    "format_number": [{ "value": 1.5, "decimals": 2, "output": "1.50" }],
+    "parse_number": [{ "input": "42.5", "output": 42.5 }, { "input": "x", "output": null }],
+    "is_integer": [{ "value": 42.0, "output": true }, { "value": 42.5, "output": false }],
+    "parse_int": [{ "input": "42", "output": 42 }, { "input": "x", "output": null }],
+    "percent_format": [{ "value": 0.125, "decimals": 1, "output": "12.5%" }],
+    "in_range": [
+      { "value": 5, "min": 1, "max": 10, "output": true },
+      { "value": 0, "min": 1, "max": 10, "output": false }
+    ],
+    "abs": [{ "input": -3.5, "output": 3.5 }]
+  },
+  "collection": {
+    "unique": [{ "input": [1, 2, 2, 3], "output": [1, 2, 3] }],
+    "chunk": [{ "input": [1, 2, 3, 4, 5], "size": 2, "output": [[1, 2], [3, 4], [5]] }],
+    "flatten": [{ "input": [[1, 2], [3]], "output": [1, 2, 3] }],
+    "compact": [{ "input": [1, null, 2], "output": [1, 2] }],
+    "group_by": [
+      {
+        "input": [{ "type": "a", "v": 1 }, { "type": "b", "v": 2 }, { "type": "a", "v": 3 }],
+        "key": "type",
+        "output": { "a": [{ "type": "a", "v": 1 }, { "type": "a", "v": 3 }], "b": [{ "type": "b", "v": 2 }] }
+      }
+    ],
+    "first": [{ "input": [1, 2, 3], "output": 1 }, { "input": [], "output": null }],
+    "last": [{ "input": [1, 2, 3], "output": 3 }, { "input": [], "output": null }],
+    "sort_by": [{ "input": [{ "k": "b" }, { "k": "a" }], "key": "k", "output": [{ "k": "a" }, { "k": "b" }] }],
+    "key_by": [
+      {
+        "input": [{ "id": "a", "v": 1 }, { "id": "b", "v": 2 }, { "id": "a", "v": 3 }],
+        "key": "id",
+        "output": { "a": { "id": "a", "v": 3 }, "b": { "id": "b", "v": 2 } }
+      }
+    ],
+    "filter": [{ "input": [1, 2, 3, 4], "threshold": 2, "output": [3, 4] }],
+    "find": [{ "input": [1, 5, 3], "threshold": 3, "output": 5 }]
+  },
+  "validation": {
+    "is_email": [{ "input": "user@example.com", "output": true }],
+    "is_uuid": [{ "input": "550e8400-e29b-41d4-a716-446655440000", "output": true }],
+    "is_url": [{ "input": "https://example.com/path", "output": true }],
+    "is_numeric": [{ "input": "12.5", "output": true }],
+    "is_ipv4": [{ "input": "192.168.0.1", "output": true }, { "input": "999.0.0.1", "output": false }],
+    "is_ipv6": [
+      { "input": "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "output": true },
+      { "input": "::1", "output": true },
+      { "input": "192.168.0.1", "output": false }
+    ],
+    "is_phone_e164": [
+      { "input": "+14155552671", "output": true },
+      { "input": "14155552671", "output": false },
+      { "input": "+0123", "output": false }
+    ]
+  },
+  "id": {
+    "uuid": [{ "pattern": "uuid-v4" }],
+    "random_string": [{ "length": 8 }]
+  },
+  "path": {
+    "join_path": [{ "segments": ["a", "b", "c"], "output": "a/b/c" }],
+    "normalize_path": [{ "input": "a//b/c/", "output": "a/b/c" }]
+  },
+  "i18n": {
+    "format_number_locale": [
+      { "value": 1234.5, "locale": "en-US", "decimals": 2, "output": "1,234.50" },
+      { "value": 1234.5, "locale": "de-DE", "decimals": 2, "output": "1.234,50" }
+    ],
+    "format_datetime_locale": [
+      {
+        "input": "2024-06-15T14:30:00.000Z",
+        "locale": "en-US",
+        "contains": "2024"
+      }
+    ],
+    "parse_number_locale": [
+      { "input": "1,234.50", "locale": "en-US", "output": 1234.5 },
+      { "input": "1.234,50", "locale": "de-DE", "output": 1234.5 },
+      { "input": "x", "locale": "en-US", "output": null }
+    ]
+  },
+  "optional": {
+    "coalesce": [{ "values": [null, "", "  ", "ok"], "output": "ok" }],
+    "default_if_blank": [{ "input": "  ", "default": "fallback", "output": "fallback" }]
+  },
+  "result": {
+    "ok": [{ "value": 42, "is_ok": true, "is_err": false }],
+    "err": [{ "message": "fail", "is_ok": false, "is_err": true }],
+    "is_ok": [{ "kind": "ok", "value": 1, "output": true }, { "kind": "err", "message": "x", "output": false }],
+    "is_err": [{ "kind": "ok", "value": 1, "output": false }, { "kind": "err", "message": "x", "output": true }],
+    "unwrap_or": [
+      { "kind": "ok", "value": 42, "default": 0, "output": 42 },
+      { "kind": "err", "message": "fail", "default": 0, "output": 0 }
+    ],
+    "map": [{ "kind": "ok", "value": 2, "output": 4 }]
+  },
+  "boolean": {
+    "parse_bool": [
+      { "input": "true", "output": true },
+      { "input": "0", "output": false },
+      { "input": "maybe", "output": null }
+    ],
+    "is_truthy": [
+      { "input": "yes", "output": true },
+      { "input": "false", "output": false },
+      { "input": "  ", "output": false }
+    ]
+  },
+  "compare": {
+    "deep_equal": [
+      { "left": { "a": 1, "b": [2, 3] }, "right": { "b": [2, 3], "a": 1 }, "output": true },
+      { "left": { "a": 1 }, "right": { "a": 2 }, "output": false }
+    ],
+    "deep_clone": [
+      { "input": { "a": 1, "b": [2, { "c": 3 }] }, "output": { "a": 1, "b": [2, { "c": 3 }] } }
+    ]
+  },
+  "currency": {
+    "is_currency_code": [
+      { "input": "USD", "output": true },
+      { "input": "usd", "output": false },
+      { "input": "XXX", "output": false }
+    ],
+    "minor_unit_exponent": [
+      { "code": "USD", "output": 2 },
+      { "code": "JPY", "output": 0 },
+      { "code": "XXX", "output": null }
+    ],
+    "to_minor_units": [{ "amount": 12.34, "code": "USD", "output": 1234 }],
+    "from_minor_units": [{ "minor": 1234, "code": "USD", "output": 12.34 }],
+    "format_currency": [
+      { "amount": 1234.5, "code": "USD", "locale": "en-US", "output": "$1,234.50" },
+      { "amount": 1234.5, "code": "EUR", "locale": "de-DE", "output": "1.234,50 €" }
+    ]
+  },
+  "bloom": {
+    "create": [{ "expected_items": 128, "false_positive_rate": 0.01, "bit_count": 1227, "hash_count": 7 }],
+    "estimate_bit_count": [{ "expected_items": 128, "false_positive_rate": 0.01, "output": 1227 }],
+    "estimate_hash_count": [{ "expected_items": 128, "bit_count": 1227, "output": 7 }],
+    "add": [{ "value": "hello" }],
+    "might_contain": [
+      {
+        "added": ["hello", "world"],
+        "present": "hello",
+        "absent": "__sdkwork_bloom_absent__",
+        "present_output": true,
+        "absent_output": false
+      }
+    ]
+  },
+  "bytes": {
+    "format_bytes": [
+      { "value": 0, "decimals": 1, "output": "0 B" },
+      { "value": 512, "decimals": 1, "output": "512 B" },
+      { "value": 1536, "decimals": 1, "output": "1.5 KB" },
+      { "value": 1048576, "decimals": 2, "output": "1.00 MB" }
+    ]
+  }
+}

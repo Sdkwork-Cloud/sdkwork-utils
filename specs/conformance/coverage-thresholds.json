@@ -1,0 +1,17 @@
+{
+  "version": "0.10.0",
+  "description": "Minimum conformance test coverage percent per language. Raise thresholds as tests expand.",
+  "thresholds": {
+    "typescript": 100,
+    "python": 100,
+    "php": 100,
+    "java": 70,
+    "kotlin": 70,
+    "csharp": 70,
+    "go": 70,
+    "rust": 19
+  },
+  "covered_by": {
+    "bloom.add": ["bloom.might_contain", "bloom.add"]
+  }
+}

@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = ["packages/sdkwork-utils-rust"]
+
+[workspace.package]
+edition = "2021"
+version = "0.10.0"
+license = "MIT"
+authors = ["SDKWork"]
+repository = "https://github.com/sdkwork/sdkwork-utils"
+description = "SDKWork cross-language utility libraries"

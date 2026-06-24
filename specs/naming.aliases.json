@@ -1,0 +1,14 @@
+{
+  "version": "0.10.0",
+  "description": "Idiomatic export names for contract snake_case operations per language.",
+  "languages": {
+    "rust": { "style": "snake_case", "examples": { "format": "format_datetime", "parse": "parse_datetime", "object.compact": "compact_map" } },
+    "typescript": { "style": "camelCase", "examples": { "format": "formatDatetime", "parse": "parseDatetime", "object.compact": "compactObject" } },
+    "python": { "style": "snake_case", "examples": { "round": "round_number", "object.compact": "compact_map" } },
+    "go": { "style": "PascalCase", "examples": { "format": "FormatDatetime", "parse": "ParseDatetime", "collection.compact": "CompactAny", "object.compact": "CompactMap" } },
+    "java": { "style": "camelCase on Utils class", "examples": { "format": "formatDatetime", "parse": "parseDatetime" } },
+    "kotlin": { "style": "camelCase on Utils object", "examples": { "format": "formatDatetime", "parse": "parseDatetime" } },
+    "csharp": { "style": "PascalCase", "examples": { "result.ok": "ResultValue.Success", "result.err": "ResultValue.Failure" } },
+    "php": { "style": "camelCase static methods", "examples": { "format": "formatDatetime", "parse": "parseDatetime" } }
+  }
+}

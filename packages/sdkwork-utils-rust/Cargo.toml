@@ -1,0 +1,20 @@
+[package]
+name = "sdkwork-utils-rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "SDKWork cross-language utility library for Rust"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+rand = "0.8"
+regex = "1"
+serde_json = "1"
+sha2 = "0.10"
+hmac = "0.12"
+urlencoding = "2"
+
+[dev-dependencies]
+pretty_assertions = "1"

@@ -1,0 +1,24 @@
+{
+  "version": "0.5.0",
+  "description": "Shared ISO 4217 metadata for sdkwork-utils currency helpers. Exponent is decimal places for standard amounts.",
+  "currencies": {
+    "USD": { "exponent": 2, "symbol": "$" },
+    "EUR": { "exponent": 2, "symbol": "€" },
+    "GBP": { "exponent": 2, "symbol": "£" },
+    "CNY": { "exponent": 2, "symbol": "¥" },
+    "JPY": { "exponent": 0, "symbol": "¥" },
+    "KRW": { "exponent": 0, "symbol": "₩" },
+    "HKD": { "exponent": 2, "symbol": "HK$" },
+    "TWD": { "exponent": 2, "symbol": "NT$" },
+    "CHF": { "exponent": 2, "symbol": "CHF" },
+    "CAD": { "exponent": 2, "symbol": "CA$" },
+    "AUD": { "exponent": 2, "symbol": "A$" },
+    "INR": { "exponent": 2, "symbol": "₹" },
+    "BHD": { "exponent": 3, "symbol": "BHD" },
+    "KWD": { "exponent": 3, "symbol": "KWD" }
+  },
+  "format": {
+    "suffix_locales": ["de", "de-de", "fr", "fr-fr", "it", "it-it", "es", "es-es"],
+    "suffix_separator": " "
+  }
+}

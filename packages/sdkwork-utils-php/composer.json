@@ -1,0 +1,26 @@
+{
+  "name": "sdkwork/utils-php",
+  "version": "0.10.0",
+  "description": "SDKWork cross-language utility library for PHP",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sdkwork\\Utils\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Sdkwork\\Utils\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}

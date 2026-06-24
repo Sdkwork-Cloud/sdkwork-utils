@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: sdkwork-utils-python
+Version: 0.2.0
+Summary: SDKWork cross-language utility library for Python
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
+# sdkwork-utils-python
+
+Python implementation of the SDKWork cross-language utility contract.

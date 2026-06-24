@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdkwork-utils-python"
+version = "0.10.0"
+description = "SDKWork cross-language utility library for Python"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sdkwork_utils*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

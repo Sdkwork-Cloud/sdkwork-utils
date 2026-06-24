@@ -1,0 +1,171 @@
+{
+  "name": "sdkwork-utils",
+  "version": "0.9.0",
+  "description": "Cross-language utility API contract. All language packages must implement these modules and operations with equivalent behavior.",
+  "semantics": {
+    "blank": "null, undefined, None, or whitespace-only strings are blank.",
+    "string_length": "max_len and pad targets use Unicode code points (characters), not UTF-8 bytes.",
+    "datetime": "All instants are UTC. Default parse/format pattern is ISO-8601 with millisecond precision.",
+    "path_separator": "Logical path segments use forward slash regardless of OS.",
+    "failure": "Parse/decode failures return null/None/optional empty; they do not throw unless language idioms require explicit Result types.",
+    "naming": "Contract operations use snake_case. Each language package maps to idiomatic export names documented in specs/naming.aliases.json.",
+    "currency": "ISO 4217 codes are 3 uppercase ASCII letters. Minor units use specs/currency.metadata.json exponents. format_currency uses locale separators from i18n rules and symbol placement from currency metadata.",
+    "bloom": "SHA-256 Kirsch-Mitzenmacher hashing: h1/h2 from first 8 digest bytes (big-endian u32), positions (h1 + i*h2) mod m. m = max(64, ceil(-n*ln(p)/ln(2)^2)), k = max(1, round(m/n*ln(2))).",
+    "template": "Replace {identifier} placeholders when the key exists in the values map. Identifiers match [A-Za-z_][A-Za-z0-9_]*. Unknown placeholders are left unchanged. No expression evaluation.",
+    "bytes": "Byte counts use binary (1024) scaling with units B, KB, MB, GB, TB, PB. Negative inputs are treated as 0. Whole-byte values under 1024 render as integer B without decimals.",
+    "base64url": "URL-safe base64 uses - and _ without padding on encode; decode accepts optional padding.",
+    "ipv6": "IPv6 shape check for full and ::-compressed forms; excludes IPv4 dotted strings.",
+    "e164": "E.164 shape is + followed by 2-15 decimal digits with first digit 1-9.",
+    "parse_number_locale": "Parse locale-grouped number strings for en-US and de-DE separators matching format_number_locale."
+  },
+  "modules": {
+    "string": {
+      "is_blank": "Returns true when value is null/None/undefined or whitespace-only.",
+      "trim": "Removes leading and trailing whitespace.",
+      "truncate": "Truncates to max length with optional suffix (default '...'). Uses Unicode code points.",
+      "capitalize": "Uppercases first character, lowercases the rest.",
+      "camel_case": "Converts delimited text to camelCase.",
+      "snake_case": "Converts delimited text to snake_case.",
+      "kebab_case": "Converts delimited text to kebab-case.",
+      "slugify": "Lowercase URL-safe slug with hyphens.",
+      "mask": "Masks middle of string, keeping visible start/end counts. Default mask char '*'.",
+      "pad_start": "Pads string on the left to target length. Default pad char space.",
+      "pad_end": "Pads string on the right to target length. Default pad char space.",
+      "starts_with": "True when value begins with prefix (case-sensitive).",
+      "ends_with": "True when value ends with suffix (case-sensitive).",
+      "contains": "True when value contains substring (case-sensitive).",
+      "replace_all": "Replace all occurrences of search with replacement.",
+      "split": "Split string by delimiter into non-empty trimmed parts when trim_parts is true.",
+      "join": "Join string parts with separator.",
+      "repeat": "Repeat string count times; count must be >= 0.",
+      "normalize_whitespace": "Trim and collapse internal whitespace runs to a single space.",
+      "template": "Substitute {key} placeholders from a string map; unknown keys remain literal."
+    },
+    "datetime": {
+      "now": "Current UTC instant.",
+      "format": "Format datetime; default pattern ISO-8601.",
+      "parse": "Parse datetime string; default pattern ISO-8601.",
+      "add_days": "Add signed day count.",
+      "add_hours": "Add signed hour count.",
+      "add_minutes": "Add signed minute count.",
+      "diff_millis": "Milliseconds from earlier to later (later - earlier).",
+      "is_before": "True when first instant is strictly before second.",
+      "is_after": "True when first instant is strictly after second.",
+      "start_of_day_utc": "UTC midnight for the given instant's date.",
+      "end_of_day_utc": "UTC 23:59:59.999 for the given instant's date.",
+      "to_unix_millis": "Convert UTC instant to Unix epoch milliseconds.",
+      "from_unix_millis": "Convert Unix epoch milliseconds to UTC instant.",
+      "is_same_instant": "True when two UTC instants represent the same millisecond."
+    },
+    "number": {
+      "clamp": "Restrict value to inclusive [min, max].",
+      "round": "Round to decimal places (default 0).",
+      "format_number": "Format with fixed decimal places.",
+      "parse_number": "Parse string to number or null/none on failure.",
+      "is_integer": "True when value is an integer.",
+      "parse_int": "Parse string to integer or null/none on failure.",
+      "percent_format": "Format ratio (0-1) as percentage string with fixed decimals.",
+      "in_range": "True when value is within inclusive [min, max].",
+      "abs": "Absolute value."
+    },
+    "collection": {
+      "unique": "Deduplicate preserving first occurrence order.",
+      "chunk": "Split into fixed-size groups; last chunk may be smaller.",
+      "group_by": "Group items by key function.",
+      "flatten": "Flatten one level of nested lists.",
+      "compact": "Remove null/none entries from a list preserving order.",
+      "first": "Return first element or null/none when empty.",
+      "last": "Return last element or null/none when empty.",
+      "sort_by": "Return a new list sorted ascending by key function.",
+      "key_by": "Build a map from list items keyed by key function; later items overwrite earlier keys.",
+      "filter": "Return items matching predicate, preserving order.",
+      "find": "Return first item matching predicate or null/none."
+    },
+    "validation": {
+      "is_email": "Basic RFC-like email shape check.",
+      "is_uuid": "UUID v1-v5 format check.",
+      "is_url": "HTTP/HTTPS URL shape check.",
+      "is_numeric": "True when entire string parses as number.",
+      "is_ipv4": "True when string is dotted IPv4 address.",
+      "is_ipv6": "True when string matches IPv6 full or compressed colon-hex form.",
+      "is_phone_e164": "True when string matches E.164 +[1-9]digits shape (2-15 digits total)."
+    },
+    "id": {
+      "uuid": "Random UUID v4 string.",
+      "random_string": "Random alphanumeric string of given length."
+    },
+    "encoding": {
+      "base64_encode": "Encode bytes/string to standard base64.",
+      "base64_decode": "Decode base64 to bytes; fail on invalid input.",
+      "hex_encode": "Encode bytes to lowercase hex.",
+      "hex_decode": "Decode hex to bytes; fail on invalid input.",
+      "url_encode": "Percent-encode string for URL query/path components.",
+      "url_decode": "Percent-decode URL-encoded string.",
+      "base64url_encode": "Encode bytes/string to unpadded URL-safe base64.",
+      "base64url_decode": "Decode URL-safe base64 to bytes; fail on invalid input."
+    },
+    "path": {
+      "join_path": "Join path segments with single separator, skipping empty parts.",
+      "normalize_path": "Collapse duplicate separators and trailing slash (except root)."
+    },
+    "object": {
+      "pick": "Return a new object containing only the requested keys.",
+      "omit": "Return a new object excluding the requested keys.",
+      "get_path": "Read a nested value using dot-separated path segments.",
+      "set_path": "Write a nested value using dot-separated path segments, creating objects as needed.",
+      "has_path": "True when dot-separated path exists and value is not null/none.",
+      "deep_merge": "Recursively merge objects; later values override scalars and arrays.",
+      "shallow_merge": "Merge top-level keys; later object wins per key.",
+      "compact": "Remove null/none entries from an object map.",
+      "keys": "Return object keys in insertion order.",
+      "values": "Return object values in insertion order."
+    },
+    "crypto": {
+      "sha256_hash": "Compute SHA-256 digest and return lowercase hex.",
+      "hmac_sha256": "Compute HMAC-SHA256 and return lowercase hex.",
+      "secure_compare": "Constant-time comparison of two strings; false when lengths differ."
+    },
+    "optional": {
+      "coalesce": "Return the first non-null, non-blank value.",
+      "default_if_blank": "Return default when value is null/blank, otherwise trimmed value."
+    },
+    "result": {
+      "ok": "Construct a successful result carrying a value.",
+      "err": "Construct a failed result carrying an error message.",
+      "is_ok": "True when result is successful.",
+      "is_err": "True when result is failed.",
+      "unwrap_or": "Return value on success, default on failure.",
+      "map": "Transform successful value; propagate failure."
+    },
+    "i18n": {
+      "format_number_locale": "Format number using BCP47 locale separators.",
+      "format_datetime_locale": "Format UTC instant using locale-oriented pattern.",
+      "parse_number_locale": "Parse grouped number string for en-US or de-DE separators; null/none on failure."
+    },
+    "boolean": {
+      "parse_bool": "Parse common boolean strings (true/false/1/0/yes/no); null on unknown.",
+      "is_truthy": "True for non-blank strings other than false/0/no/off (case-insensitive)."
+    },
+    "compare": {
+      "deep_equal": "Structural equality for JSON-like scalars, arrays, and objects; object key order ignored.",
+      "deep_clone": "Deep copy JSON-like scalars, arrays, and objects; returned structure is independent."
+    },
+    "currency": {
+      "is_currency_code": "True when value is a supported ISO 4217 code in currency metadata.",
+      "minor_unit_exponent": "Decimal places for standard major-unit amounts; null/none for unknown codes.",
+      "to_minor_units": "Convert major-unit amount to integer minor units using currency exponent.",
+      "from_minor_units": "Convert integer minor units to major-unit amount.",
+      "format_currency": "Format major-unit amount with locale separators and currency symbol."
+    },
+    "bloom": {
+      "create": "Create an empty Bloom filter for expected item count and false-positive rate (0.0001-0.25).",
+      "estimate_bit_count": "Compute bit array length m from expected items and false-positive rate.",
+      "estimate_hash_count": "Compute hash function count k from expected items and bit array length.",
+      "add": "Insert a UTF-8 string into the filter.",
+      "might_contain": "True when all hash positions are set; false negatives never occur for added items."
+    },
+    "bytes": {
+      "format_bytes": "Format a non-negative byte count using 1024-based units and fixed decimal places (default 1) for KB and above."
+    }
+  }
+}

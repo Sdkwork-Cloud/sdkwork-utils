@@ -1,4 +1,4 @@
-export type ResultValue<T> = {
+﻿export type ResultValue<T> = {
     ok: true;
     value: T;
 } | {

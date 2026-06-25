@@ -1,4 +1,4 @@
-export declare function clamp(value: number, min: number, max: number): number;
+﻿export declare function clamp(value: number, min: number, max: number): number;
 export declare function round(value: number, decimals?: number): number;
 export declare function formatNumber(value: number, decimals?: number): string;
 export declare function parseNumber(value: string): number | null;

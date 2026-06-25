@@ -1,4 +1,4 @@
-const textEncoder = new TextEncoder();
+﻿const textEncoder = new TextEncoder();
 
 export function toUtf8(value: string): Uint8Array {
   return textEncoder.encode(value);

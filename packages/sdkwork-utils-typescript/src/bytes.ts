@@ -1,4 +1,4 @@
-const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"] as const;
+﻿const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"] as const;
 
 export function formatBytes(value: number, decimals = 1): string {
   const bytes = Math.max(0, Math.trunc(value));

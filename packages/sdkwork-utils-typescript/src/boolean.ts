@@ -1,4 +1,4 @@
-import { isBlank } from "./string.js";
+﻿import { isBlank } from "./string.js";
 
 export function parseBool(value: string): boolean | null {
   switch (value.trim().toLowerCase()) {

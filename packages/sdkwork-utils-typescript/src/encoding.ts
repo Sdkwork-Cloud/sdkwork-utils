@@ -1,4 +1,4 @@
-import {
+﻿import {
   base64Decode as decodeBase64,
   base64Encode as encodeBase64,
   base64UrlDecode as decodeBase64Url,

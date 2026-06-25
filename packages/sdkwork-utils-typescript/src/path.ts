@@ -1,4 +1,4 @@
-export function joinPath(...segments: string[]): string {
+﻿export function joinPath(...segments: string[]): string {
   return segments
     .map((segment) => segment.replace(/^\/+|\/+$/g, ""))
     .filter(Boolean)

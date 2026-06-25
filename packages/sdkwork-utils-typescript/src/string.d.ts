@@ -1,4 +1,4 @@
-export declare function isBlank(value: string | null | undefined): boolean;
+﻿export declare function isBlank(value: string | null | undefined): boolean;
 export declare function trim(value: string): string;
 export declare function truncate(value: string, maxLen: number, suffix?: string): string;
 export declare function capitalize(value: string): string;

@@ -1,4 +1,4 @@
-export type JsonObject = Record<string, unknown>;
+﻿export type JsonObject = Record<string, unknown>;
 
 function isObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);

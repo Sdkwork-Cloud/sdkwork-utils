@@ -1,4 +1,4 @@
-export function unique<T>(items: T[]): T[] {
+﻿export function unique<T>(items: T[]): T[] {
   return [...new Set(items)];
 }
 

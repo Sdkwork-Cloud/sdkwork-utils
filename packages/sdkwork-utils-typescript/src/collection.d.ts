@@ -1,4 +1,4 @@
-export declare function unique<T>(items: T[]): T[];
+﻿export declare function unique<T>(items: T[]): T[];
 export declare function chunk<T>(items: T[], size: number): T[][];
 export declare function groupBy<T, K extends PropertyKey>(items: T[], keyFn: (item: T) => K): Record<K, T[]>;
 export declare function flatten<T>(items: T[][]): T[];

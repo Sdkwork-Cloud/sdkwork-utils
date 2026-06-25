@@ -1,4 +1,4 @@
-const WORD_SPLIT = /[^a-zA-Z0-9]+/;
+﻿const WORD_SPLIT = /[^a-zA-Z0-9]+/;
 const CAMEL_BOUNDARY = /([a-z0-9])([A-Z])|([A-Z]+)([A-Z][a-z])/g;
 
 function camelParts(input: string): string[] {

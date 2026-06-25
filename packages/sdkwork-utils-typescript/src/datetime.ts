@@ -1,4 +1,4 @@
-export const DEFAULT_PATTERN = "iso8601";
+﻿export const DEFAULT_PATTERN = "iso8601";
 
 export function now(): Date {
   return new Date();

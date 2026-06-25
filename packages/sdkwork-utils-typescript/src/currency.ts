@@ -1,4 +1,4 @@
-import { formatNumberLocale } from "./i18n.js";
+﻿import { formatNumberLocale } from "./i18n.js";
 import { round } from "./number.js";
 
 const KNOWN: Record<string, { exponent: number; symbol: string }> = {

@@ -1,4 +1,4 @@
-import { readUInt32BE, toUtf8 } from "./runtime/binary.js";
+﻿import { readUInt32BE, toUtf8 } from "./runtime/binary.js";
 import { sha256Digest } from "./runtime/sha256.js";
 
 const LN2 = Math.LN2;

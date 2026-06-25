@@ -1,4 +1,4 @@
-export declare class BloomFilter {
+﻿export declare class BloomFilter {
     readonly bitCount: number;
     readonly hashCount: number;
     readonly bits: Uint8Array;

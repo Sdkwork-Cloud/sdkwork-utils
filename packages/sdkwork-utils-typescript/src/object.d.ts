@@ -1,4 +1,4 @@
-export type JsonObject = Record<string, unknown>;
+﻿export type JsonObject = Record<string, unknown>;
 export declare function pick(source: JsonObject, keys: string[]): JsonObject;
 export declare function omit(source: JsonObject, keys: string[]): JsonObject;
 export declare function getPath(source: unknown, path: string): unknown;

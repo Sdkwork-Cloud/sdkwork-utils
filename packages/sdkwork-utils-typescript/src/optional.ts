@@ -1,4 +1,4 @@
-import { isBlank } from "./string.js";
+﻿import { isBlank } from "./string.js";
 
 export function coalesce(...values: Array<string | null | undefined>): string | undefined {
   for (const value of values) {

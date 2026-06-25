@@ -1,4 +1,4 @@
-function getCrypto(): Crypto {
+﻿function getCrypto(): Crypto {
   const crypto = globalThis.crypto;
   if (!crypto?.getRandomValues) {
     throw new Error("Web Crypto API is not available in this environment.");

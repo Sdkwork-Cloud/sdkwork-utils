@@ -1,4 +1,4 @@
-import { round } from "./number.js";
+﻿import { round } from "./number.js";
 import { parseDatetime } from "./datetime.js";
 
 function separators(locale: string): { decimal: string; grouping: string } {

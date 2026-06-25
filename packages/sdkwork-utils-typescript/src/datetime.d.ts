@@ -1,4 +1,4 @@
-export declare const DEFAULT_PATTERN = "iso8601";
+﻿export declare const DEFAULT_PATTERN = "iso8601";
 export declare function now(): Date;
 export declare function formatDatetime(value: Date, pattern?: string): string;
 export declare function parseDatetime(value: string, pattern?: string): Date | null;

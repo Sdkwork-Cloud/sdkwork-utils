@@ -16,6 +16,7 @@ pub mod object;
 pub mod optional;
 pub mod path;
 pub mod result;
+pub mod serde_int64;
 pub mod string;
 pub mod validation;
 

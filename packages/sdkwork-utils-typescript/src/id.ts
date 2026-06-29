@@ -3,6 +3,8 @@
 const ALPHANUMERIC =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+export { randomBytes };
+
 export function uuid(): string {
   return randomUuid();
 }

@@ -10,5 +10,5 @@
     "verify:typescript-exports": "node scripts/check-typescript-exports.mjs",
     "test:typescript": "pnpm --dir packages/sdkwork-utils-typescript test"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@10.33.0"
 }

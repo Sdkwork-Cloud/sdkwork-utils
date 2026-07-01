@@ -1,4 +1,5 @@
 # sdkwork-utils
+repository-kind: shared-package-family
 
 Cross-language common utility libraries for SDKWork applications.
 

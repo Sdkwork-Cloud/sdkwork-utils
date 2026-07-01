@@ -232,6 +232,80 @@ impl SdkWorkCommandData {
     }
 }
 
+/// Request routing context attached to `ProblemDetail` (`API_SPEC.md` §15.2).
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct SdkWorkProblemRouting {
+    pub method: Option<String>,
+    pub route_template: Option<String>,
+    pub fallback_path: Option<String>,
+    pub operation_id: Option<String>,
+}
+
+impl SdkWorkProblemRouting {
+    pub fn from_parts(
+        method: Option<&str>,
+        route_template: Option<&str>,
+        fallback_path: Option<&str>,
+        operation_id: Option<&str>,
+    ) -> Self {
+        Self {
+            method: non_empty_text(method),
+            route_template: non_empty_text(route_template),
+            fallback_path: non_empty_text(fallback_path),
+            operation_id: non_empty_text(operation_id),
+        }
+    }
+
+    /// RFC 9457 `instance`: `{METHOD} {routeTemplate}` with safe fallback redaction.
+    pub fn instance(&self) -> Option<String> {
+        let route = self
+            .route_template
+            .as_deref()
+            .or(self.fallback_path.as_deref())?;
+        let route = if self.route_template.is_some() {
+            route.to_owned()
+        } else {
+            redact_http_path_segments(route)
+        };
+        let method = self
+            .method
+            .as_deref()
+            .unwrap_or("GET")
+            .trim()
+            .to_ascii_uppercase();
+        Some(format!("{method} {route}"))
+    }
+}
+
+/// Redact numeric and uuid-like HTTP path segments for Problem `instance` values.
+pub fn redact_http_path_segments(path: &str) -> String {
+    path.split('/')
+        .map(|segment| {
+            if segment.is_empty() {
+                return String::new();
+            }
+            if segment.chars().all(|ch| ch.is_ascii_digit())
+                || segment.len() >= 32
+                    && segment
+                        .chars()
+                        .all(|ch| ch.is_ascii_hexdigit() || ch == '-')
+            {
+                "{id}".to_owned()
+            } else {
+                segment.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn non_empty_text(value: Option<&str>) -> Option<String> {
+    value
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+}
+
 /// RFC 9457 `application/problem+json` body (`API_SPEC.md` §15.2).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -246,6 +320,8 @@ pub struct SdkWorkProblemDetail {
     pub instance: Option<String>,
     pub code: i32,
     pub trace_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_id: Option<String>,
 }
 
 impl SdkWorkProblemDetail {
@@ -254,7 +330,42 @@ impl SdkWorkProblemDetail {
         detail: impl Into<String>,
         trace_id: impl Into<String>,
     ) -> Self {
-        let detail_text = detail.into();
+        Self::platform_body(result_code, detail, trace_id)
+    }
+
+    pub fn platform_enriched(
+        result_code: SdkWorkResultCode,
+        detail: impl Into<String>,
+        trace_id: impl Into<String>,
+        routing: SdkWorkProblemRouting,
+    ) -> Self {
+        Self::platform_body(result_code, detail, trace_id).with_routing(routing)
+    }
+
+    pub fn with_routing(mut self, routing: SdkWorkProblemRouting) -> Self {
+        self.instance = routing.instance();
+        self.operation_id = routing.operation_id;
+        self
+    }
+
+    /// Client-safe Problem `detail` — internal failures must not leak implementation details.
+    pub fn client_safe_detail(result_code: SdkWorkResultCode, detail: &str) -> String {
+        match result_code {
+            SdkWorkResultCode::InternalError => "An internal error occurred".to_owned(),
+            SdkWorkResultCode::ServiceUnavailable => {
+                "A required dependency is temporarily unavailable".to_owned()
+            }
+            _ if detail.trim().is_empty() => result_code.title().to_owned(),
+            _ => detail.to_owned(),
+        }
+    }
+
+    fn platform_body(
+        result_code: SdkWorkResultCode,
+        detail: impl Into<String>,
+        trace_id: impl Into<String>,
+    ) -> Self {
+        let detail_text = Self::client_safe_detail(result_code, &detail.into());
         Self {
             problem_type: format!("https://docs.sdkwork.com/problems/{}", result_code.as_i32()),
             title: result_code.title().to_string(),
@@ -267,16 +378,25 @@ impl SdkWorkProblemDetail {
             instance: None,
             code: result_code.as_i32(),
             trace_id: trace_id.into(),
+            operation_id: None,
         }
     }
 }
 
+/// Maps legacy Claw Router string wire codes and symbolic aliases to platform codes.
 pub fn legacy_wire_result_code(wire_code: &str) -> SdkWorkResultCode {
     match wire_code.trim() {
-        "not_found" => SdkWorkResultCode::NotFound,
+        "2000" => SdkWorkResultCode::Ok,
+        "4001" => SdkWorkResultCode::ValidationError,
+        "4004" => SdkWorkResultCode::NotFound,
+        "4010" => SdkWorkResultCode::AuthenticationRequired,
+        "4040" | "not_found" => SdkWorkResultCode::NotFound,
+        "4090" | "conflict" => SdkWorkResultCode::Conflict,
+        "4220" => SdkWorkResultCode::UnprocessableEntity,
+        "5000" | "5001" | "4000" => SdkWorkResultCode::InternalError,
+        "5030" => SdkWorkResultCode::ServiceUnavailable,
         "invalid_input" | "validation_error" => SdkWorkResultCode::ValidationError,
         "forbidden" => SdkWorkResultCode::PermissionRequired,
-        "conflict" => SdkWorkResultCode::Conflict,
         "rate_limited" => SdkWorkResultCode::RateLimitExceeded,
         "provider_error" => SdkWorkResultCode::BadGateway,
         _ => SdkWorkResultCode::InternalError,
@@ -302,6 +422,13 @@ mod tests {
     }
 
     #[test]
+    fn legacy_claw_router_codes_map_to_platform_codes() {
+        assert_eq!(40401, legacy_wire_result_code("4004").as_i32());
+        assert_eq!(40101, legacy_wire_result_code("4010").as_i32());
+        assert_eq!(50301, legacy_wire_result_code("5030").as_i32());
+    }
+
+    #[test]
     fn problem_detail_uses_numeric_code_and_trace_id() {
         let problem = SdkWorkProblemDetail::platform(
             SdkWorkResultCode::NotFound,
@@ -313,5 +440,33 @@ mod tests {
         assert_eq!(json["status"], 404);
         assert_eq!(json["traceId"], "trace-404");
         assert_eq!(json["detail"], "Workspace not found");
+    }
+
+    #[test]
+    fn problem_detail_enriched_with_instance_and_operation_id() {
+        let routing = SdkWorkProblemRouting::from_parts(
+            Some("get"),
+            Some("/app/v3/api/wallet/transactions"),
+            None,
+            Some("wallet.transactions.list"),
+        );
+        let problem = SdkWorkProblemDetail::platform_enriched(
+            SdkWorkResultCode::InternalError,
+            "sql leak",
+            "trace-500",
+            routing,
+        );
+        let json = serde_json::to_value(problem).expect("serialize problem");
+        assert_eq!(json["instance"], "GET /app/v3/api/wallet/transactions");
+        assert_eq!(json["operationId"], "wallet.transactions.list");
+        assert_eq!(json["detail"], "An internal error occurred");
+    }
+
+    #[test]
+    fn redact_http_path_segments_masks_ids() {
+        assert_eq!(
+            "/app/v3/api/users/{id}/orders/{id}",
+            redact_http_path_segments("/app/v3/api/users/42/orders/99")
+        );
     }
 }

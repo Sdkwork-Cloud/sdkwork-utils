@@ -19,6 +19,7 @@ pub mod path;
 pub mod platform;
 pub mod result;
 pub mod serde_int64;
+pub mod serde_uint64;
 pub mod string;
 pub mod validation;
 
@@ -40,6 +41,9 @@ pub use optional::*;
 pub use path::*;
 pub use platform::*;
 pub use result::*;
-pub use serde_int64::*;
+// serde_int64 and serde_uint64 are intentionally NOT glob-reexported.
+// They export conflicting `serialize`/`deserialize`/`option` names and are
+// designed to be used via their full module path as serde `with` attributes:
+//   #[serde(with = "sdkwork_utils_rust::serde_int64")]
 pub use string::*;
 pub use validation::*;

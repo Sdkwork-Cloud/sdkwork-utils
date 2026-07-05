@@ -70,6 +70,10 @@
       "types": "./dist/optional.d.ts",
       "import": "./dist/optional.js"
     },
+    "./pagination": {
+      "types": "./dist/pagination.d.ts",
+      "import": "./dist/pagination.js"
+    },
     "./path": {
       "types": "./dist/path.d.ts",
       "import": "./dist/path.js"

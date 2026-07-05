@@ -1,4 +1,5 @@
 ﻿export * from "./httpApi.js";
+export * from "./pagination.js";
 export * from "./bloom.js";
 export * from "./boolean.js";
 export * from "./bytes.js";

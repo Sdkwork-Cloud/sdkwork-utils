@@ -98,6 +98,74 @@ export function sha256Digest(value: Uint8Array): Uint8Array {
   return digest;
 }
 
+const SHA256_INITIAL_STATE = new Uint32Array([
+  0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+]);
+
+export class Sha256Hasher {
+  private readonly state = new Uint32Array(SHA256_INITIAL_STATE);
+  private readonly buffer = new Uint8Array(BLOCK_SIZE);
+  private bufferLength = 0;
+  private totalLength = 0;
+
+  update(chunk: Uint8Array): void {
+    if (chunk.length === 0) {
+      return;
+    }
+
+    this.totalLength += chunk.length;
+    let offset = 0;
+
+    if (this.bufferLength > 0) {
+      const remaining = BLOCK_SIZE - this.bufferLength;
+      if (chunk.length < remaining) {
+        this.buffer.set(chunk, this.bufferLength);
+        this.bufferLength += chunk.length;
+        return;
+      }
+
+      this.buffer.set(chunk.subarray(0, remaining), this.bufferLength);
+      sha256Block(this.state, this.buffer, 0);
+      offset = remaining;
+      this.bufferLength = 0;
+    }
+
+    while (offset + BLOCK_SIZE <= chunk.length) {
+      sha256Block(this.state, chunk, offset);
+      offset += BLOCK_SIZE;
+    }
+
+    if (offset < chunk.length) {
+      const tail = chunk.subarray(offset);
+      this.buffer.set(tail);
+      this.bufferLength = tail.length;
+    }
+  }
+
+  digest(): Uint8Array {
+    const bitLength = this.totalLength * 8;
+    const paddingLength = ((BLOCK_SIZE - ((this.bufferLength + 9) % BLOCK_SIZE)) % BLOCK_SIZE) + 9;
+    const padded = new Uint8Array(this.bufferLength + paddingLength);
+    padded.set(this.buffer.subarray(0, this.bufferLength));
+    padded[this.bufferLength] = 0x80;
+
+    const view = new DataView(padded.buffer);
+    view.setUint32(padded.length - 4, bitLength >>> 0, false);
+    view.setUint32(padded.length - 8, Math.floor(bitLength / 0x1_0000_0000), false);
+
+    for (let offset = 0; offset < padded.length; offset += BLOCK_SIZE) {
+      sha256Block(this.state, padded, offset);
+    }
+
+    const digest = new Uint8Array(32);
+    const digestView = new DataView(digest.buffer);
+    for (let index = 0; index < this.state.length; index += 1) {
+      digestView.setUint32(index * 4, this.state[index], false);
+    }
+    return digest;
+  }
+}
+
 function concatBytes(left: Uint8Array, right: Uint8Array): Uint8Array {
   const combined = new Uint8Array(left.length + right.length);
   combined.set(left);

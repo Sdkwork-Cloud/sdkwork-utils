@@ -130,10 +130,7 @@ mod tests {
     fn serializes_max_uint64_as_decimal_string() {
         let wrapper = Wrapper { value: u64::MAX };
         let json = serde_json::to_string(&wrapper).unwrap();
-        assert_eq!(
-            json,
-            r#"{"value":"18446744073709551615"}"#
-        );
+        assert_eq!(json, r#"{"value":"18446744073709551615"}"#);
     }
 
     #[test]

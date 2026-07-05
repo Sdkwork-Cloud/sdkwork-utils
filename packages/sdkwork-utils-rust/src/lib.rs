@@ -4,6 +4,7 @@ pub mod bloom;
 pub mod boolean;
 pub mod bytes;
 pub mod collection;
+pub mod commerce_checkout;
 pub mod compare;
 pub mod crypto;
 pub mod currency;
@@ -21,12 +22,14 @@ pub mod result;
 pub mod serde_int64;
 pub mod serde_uint64;
 pub mod string;
+pub mod trusted_proxy;
 pub mod validation;
 
 pub use bloom::*;
 pub use boolean::*;
 pub use bytes::*;
 pub use collection::*;
+pub use commerce_checkout::*;
 pub use compare::*;
 pub use crypto::*;
 pub use currency::*;
@@ -46,4 +49,5 @@ pub use result::*;
 // designed to be used via their full module path as serde `with` attributes:
 //   #[serde(with = "sdkwork_utils_rust::serde_int64")]
 pub use string::*;
+pub use trusted_proxy::*;
 pub use validation::*;

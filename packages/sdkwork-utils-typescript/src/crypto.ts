@@ -1,8 +1,10 @@
-﻿import { hmacSha256Hex, sha256Hex } from "./runtime/sha256.js";
+﻿import { hmacSha256Hex, sha256Hex, Sha256Hasher } from "./runtime/sha256.js";
 
 export function sha256Hash(value: string | Uint8Array): string {
   return sha256Hex(value);
 }
+
+export { Sha256Hasher };
 
 export function hmacSha256(value: string | Uint8Array, secret: string | Uint8Array): string {
   return hmacSha256Hex(value, secret);

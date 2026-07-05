@@ -23,5 +23,8 @@ export function unwrapOr<T>(result: ResultValue<T>, defaultValue: T): T {
 }
 
 export function map<T, U>(result: ResultValue<T>, mapper: (value: T) => U): ResultValue<U> {
-  return result.ok ? ok(mapper(result.value)) : err(result.error);
+  if (isOk(result)) {
+    return ok(mapper(result.value));
+  }
+  return err(result.error);
 }

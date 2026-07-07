@@ -272,18 +272,91 @@ pub fn offset_list_page_params_from_values(page: i64, page_size: i64) -> OffsetL
     }
 }
 
-/// Parse standard list query keys: `page` / `pageNo` / `page_no` and `pageSize` / `page_size`.
+/// Validates cursor list params per `PAGINATION_SPEC`; rejects out-of-range `page_size` instead of clamping.
+pub fn validated_cursor_list_params(
+    page_size: Option<i32>,
+    cursor: Option<&str>,
+) -> Result<CursorListPageParams, SdkWorkResultCode> {
+    let page_size = page_size.unwrap_or(DEFAULT_LIST_PAGE_SIZE);
+    if page_size < 1 || page_size > MAX_LIST_PAGE_SIZE {
+        return Err(SdkWorkResultCode::InvalidParameter);
+    }
+    let offset = parse_offset_list_cursor(cursor)?;
+    Ok(CursorListPageParams {
+        page_size: page_size as usize,
+        offset,
+    })
+}
+
+/// Resolved list pagination mode for SQL-backed handlers.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ResolvedListPageParams {
+    Offset(OffsetListPageParams),
+    Cursor(CursorListPageParams),
+}
+
+fn query_has_page_key(query: &std::collections::HashMap<String, String>) -> bool {
+    query
+        .get("page")
+        .map(|value| !value.trim().is_empty())
+        .unwrap_or(false)
+}
+
+fn query_has_cursor_key(query: &std::collections::HashMap<String, String>) -> bool {
+    query
+        .get("cursor")
+        .map(|value| !value.trim().is_empty())
+        .unwrap_or(false)
+}
+
+fn parse_query_page_size_i32(query: &std::collections::HashMap<String, String>) -> Option<i32> {
+    query
+        .get("page_size")
+        .and_then(|value| value.parse::<i32>().ok())
+}
+
+fn parse_query_page_i64(query: &std::collections::HashMap<String, String>) -> Option<i64> {
+    query
+        .get("page")
+        .and_then(|value| value.parse::<i64>().ok())
+}
+
+/// Validates standard list query params; rejects `page` + `cursor` together and out-of-range values.
+pub fn validated_list_page_params_from_map(
+    query: &std::collections::HashMap<String, String>,
+) -> Result<ResolvedListPageParams, SdkWorkResultCode> {
+    let has_page = query_has_page_key(query);
+    let has_cursor = query_has_cursor_key(query);
+    if has_page && has_cursor {
+        return Err(SdkWorkResultCode::InvalidParameter);
+    }
+
+    if has_cursor {
+        return Ok(ResolvedListPageParams::Cursor(
+            validated_cursor_list_params(
+                parse_query_page_size_i32(query),
+                query.get("cursor").map(String::as_str),
+            )?,
+        ));
+    }
+
+    Ok(ResolvedListPageParams::Offset(
+        validated_offset_list_params(
+            parse_query_page_i64(query),
+            parse_query_page_size_i32(query).map(i64::from),
+        )?,
+    ))
+}
+
+/// Parse standard list query keys: `page` and `page_size`.
 pub fn offset_list_page_params_from_map(
     query: &std::collections::HashMap<String, String>,
 ) -> OffsetListPageParams {
     let page = query
         .get("page")
-        .or_else(|| query.get("pageNo"))
-        .or_else(|| query.get("page_no"))
         .and_then(|value| value.parse::<i64>().ok());
     let page_size = query
         .get("page_size")
-        .or_else(|| query.get("pageSize"))
         .and_then(|value| value.parse::<i64>().ok());
     OffsetListPageParams::parse(page, page_size)
 }
@@ -387,11 +460,9 @@ pub struct CursorListPageParams {
 impl CursorListPageParams {
     pub fn resolve(
         page_size: Option<i32>,
-        limit: Option<i32>,
         cursor: Option<&str>,
     ) -> Result<Self, SdkWorkResultCode> {
         let page_size = page_size
-            .or(limit)
             .map(i64::from)
             .unwrap_or(i64::from(DEFAULT_LIST_PAGE_SIZE))
             .clamp(1, i64::from(MAX_LIST_PAGE_SIZE)) as usize;
@@ -518,12 +589,12 @@ where
     deserializer.deserialize_any(OptI32Visitor)
 }
 
-/// Standard cursor/offset list query (`pageSize` wire; legacy `limit` alias accepted).
+/// Standard cursor/offset list query (`page_size` HTTP query wire).
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SdkWorkCursorListQuery {
     #[serde(
-        alias = "limit",
+        rename = "page_size",
         default,
         deserialize_with = "deserialize_option_query_i32"
     )]
@@ -533,16 +604,24 @@ pub struct SdkWorkCursorListQuery {
 
 impl SdkWorkCursorListQuery {
     pub fn resolve(&self) -> Result<CursorListPageParams, SdkWorkResultCode> {
-        CursorListPageParams::resolve(self.page_size, None, self.cursor.as_deref())
+        let page_size = self.page_size.unwrap_or(DEFAULT_LIST_PAGE_SIZE);
+        if page_size < 1 || page_size > MAX_LIST_PAGE_SIZE {
+            return Err(SdkWorkResultCode::InvalidParameter);
+        }
+        let offset = parse_offset_list_cursor(self.cursor.as_deref())?;
+        Ok(CursorListPageParams {
+            page_size: page_size as usize,
+            offset,
+        })
     }
 }
 
-/// Single-field page size query (`pageSize` wire; legacy `limit` alias accepted).
+/// Single-field page size query (`page_size` HTTP query wire).
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SdkWorkPageSizeQuery {
     #[serde(
-        alias = "limit",
+        rename = "page_size",
         default,
         deserialize_with = "deserialize_option_query_i32"
     )]
@@ -562,14 +641,14 @@ impl SdkWorkPageSizeQuery {
     }
 }
 
-/// Sequence-window list query for message/timeline feeds (`afterSeq` + `pageSize`).
+/// Sequence-window list query for message/timeline feeds (`afterSeq` + `page_size`).
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SdkWorkSeqWindowQuery {
     #[serde(default, deserialize_with = "deserialize_option_query_u64")]
     pub after_seq: Option<u64>,
     #[serde(
-        alias = "limit",
+        rename = "page_size",
         default,
         deserialize_with = "deserialize_option_query_i32"
     )]
@@ -588,6 +667,19 @@ impl SdkWorkSeqWindowQuery {
 /// Build standard offset-mode `PageInfo` for numeric cursor windows.
 pub fn offset_limit_page_info(next_cursor: Option<String>, has_more: bool) -> PageInfo {
     offset_window_page_info(None, next_cursor, has_more)
+}
+
+/// Build offset-mode `PageInfo` for SQL-backed `limit + 1` list handlers without a total count.
+pub fn offset_paged_list_page_info(params: OffsetListPageParams, has_more: bool) -> PageInfo {
+    PageInfo {
+        mode: PageMode::Offset,
+        page: Some(params.page as i32),
+        page_size: Some(params.page_size as i32),
+        total_items: None,
+        total_pages: None,
+        next_cursor: has_more.then(|| (params.offset + params.page_size).to_string()),
+        has_more: Some(has_more),
+    }
 }
 
 /// Build offset-mode `PageInfo` including resolved `pageSize` when available.
@@ -749,6 +841,56 @@ fn non_empty_text(value: Option<&str>) -> Option<String> {
         .map(str::to_owned)
 }
 
+/// RFC 6749 OAuth 2.0 error response body for external protocol endpoints (`API_SPEC.md` §4.5.2).
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct OAuthProtocolErrorBody {
+    pub error: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_description: Option<String>,
+}
+
+impl OAuthProtocolErrorBody {
+    pub fn new(error: impl Into<String>, description: impl Into<String>) -> Self {
+        let description = description.into();
+        Self {
+            error: error.into(),
+            error_description: if description.trim().is_empty() {
+                None
+            } else {
+                Some(description)
+            },
+        }
+    }
+
+    /// Maps IAM internal OAuth error codes to RFC 6749 `error` values.
+    pub fn from_iam_oauth_code(code: &str, message: &str) -> Self {
+        let oauth_error = if code.contains("invalid_client") || code.contains("client_invalid") {
+            "invalid_client"
+        } else if code.contains("invalid_grant")
+            || code.contains("token_exchange")
+            || code.contains("refresh_token")
+            || code.contains("revoke_failed")
+        {
+            "invalid_grant"
+        } else if code.contains("access_denied") || code.contains("denied") {
+            "access_denied"
+        } else if code.contains("unsupported") {
+            "unsupported_grant_type"
+        } else if code.contains("scope") {
+            "invalid_scope"
+        } else if code.contains("rate") || code.contains("rate_limited") {
+            "temporarily_unavailable"
+        } else if code.contains("unavailable") || code.contains("failed") {
+            "server_error"
+        } else if code.contains("unauthorized") {
+            "unauthorized_client"
+        } else {
+            "invalid_request"
+        };
+        Self::new(oauth_error, message)
+    }
+}
+
 /// RFC 9457 `application/problem+json` body (`API_SPEC.md` §15.2).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -827,6 +969,9 @@ impl SdkWorkProblemDetail {
 }
 
 /// Maps legacy Claw Router string wire codes and symbolic aliases to platform codes.
+///
+/// **Note:** This mapper exists for sibling SDKWork applications that still emit
+/// legacy wire codes. SDKWork IM (pre-launch) does not use or invoke this mapper.
 pub fn legacy_wire_result_code(wire_code: &str) -> SdkWorkResultCode {
     match wire_code.trim() {
         "2000" => SdkWorkResultCode::Ok,
@@ -942,11 +1087,60 @@ mod tests {
     }
 
     #[test]
+    fn validated_list_page_params_from_map_rejects_page_and_cursor_together() {
+        let mut query = std::collections::HashMap::new();
+        query.insert("page".to_owned(), "2".to_owned());
+        query.insert("cursor".to_owned(), "20".to_owned());
+        assert_eq!(
+            validated_list_page_params_from_map(&query),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+    }
+
+    #[test]
+    fn validated_list_page_params_from_map_resolves_cursor_mode() {
+        let mut query = std::collections::HashMap::new();
+        query.insert("cursor".to_owned(), "40".to_owned());
+        query.insert("page_size".to_owned(), "10".to_owned());
+        let params = validated_list_page_params_from_map(&query).expect("cursor mode");
+        assert_eq!(
+            params,
+            ResolvedListPageParams::Cursor(CursorListPageParams {
+                page_size: 10,
+                offset: 40,
+            })
+        );
+    }
+
+    #[test]
+    fn validated_cursor_list_params_rejects_invalid_page_size() {
+        assert_eq!(
+            validated_cursor_list_params(Some(0), None),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+        assert_eq!(
+            validated_cursor_list_params(Some(201), None),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+    }
+
+    #[test]
     fn offset_list_page_params_default_to_spec_page_size() {
         let params = OffsetListPageParams::parse(None, None);
         assert_eq!(1, params.page);
         assert_eq!(20, params.page_size);
         assert_eq!(0, params.offset);
+    }
+
+    #[test]
+    fn offset_paged_list_page_info_includes_page_and_page_size() {
+        let params = OffsetListPageParams::parse(Some(2), Some(20));
+        let info = offset_paged_list_page_info(params, true);
+        assert_eq!(Some(PageMode::Offset), Some(info.mode));
+        assert_eq!(Some(2), info.page);
+        assert_eq!(Some(20), info.page_size);
+        assert_eq!(Some(true), info.has_more);
+        assert_eq!(Some("40".to_owned()), info.next_cursor);
     }
 
     #[test]
@@ -981,26 +1175,18 @@ mod tests {
     }
 
     #[test]
-    fn cursor_list_page_params_resolve_page_size_and_legacy_limit() {
+    fn cursor_list_page_params_resolve_page_size() {
         let from_page_size =
-            CursorListPageParams::resolve(Some(10), None, Some("20")).expect("page size");
+            CursorListPageParams::resolve(Some(10), Some("20")).expect("page size");
         assert_eq!(from_page_size.page_size, 10);
         assert_eq!(from_page_size.offset, 20);
-
-        let from_limit = CursorListPageParams::resolve(None, Some(15), None).expect("limit");
-        assert_eq!(from_limit.page_size, 15);
-        assert_eq!(from_limit.offset, 0);
     }
 
     #[test]
-    fn sdkwork_cursor_list_query_deserializes_page_size_and_limit_alias() {
+    fn sdkwork_cursor_list_query_deserializes_page_size() {
         let from_page_size: SdkWorkCursorListQuery =
-            serde_json::from_str(r#"{"pageSize":12,"cursor":"3"}"#).expect("pageSize");
+            serde_urlencoded::from_str("page_size=12&cursor=3").expect("page_size");
         assert_eq!(from_page_size.resolve().expect("resolve").page_size, 12);
-
-        let from_limit: SdkWorkCursorListQuery =
-            serde_json::from_str(r#"{"limit":8,"cursor":"1"}"#).expect("limit");
-        assert_eq!(from_limit.resolve().expect("resolve").page_size, 8);
     }
 
     #[derive(Debug, Default, Deserialize)]
@@ -1014,7 +1200,7 @@ mod tests {
     #[test]
     fn flattened_page_size_query_deserializes_from_urlencoded_query_string() {
         let query: FlattenedPageSizeListQuery =
-            serde_urlencoded::from_str("afterAuditSeq=0&pageSize=2").expect("urlencoded query");
+            serde_urlencoded::from_str("afterAuditSeq=0&page_size=2").expect("urlencoded query");
         assert_eq!(query.after_audit_seq, Some(0));
         assert_eq!(query.paging.resolve(), 2);
     }
@@ -1029,13 +1215,26 @@ mod tests {
     #[test]
     fn sdkwork_seq_window_query_deserializes_after_seq_from_urlencoded_query_string() {
         let query: SdkWorkSeqWindowQuery =
-            serde_urlencoded::from_str("afterSeq=0&pageSize=2").expect("urlencoded query");
+            serde_urlencoded::from_str("afterSeq=0&page_size=2").expect("urlencoded query");
         assert_eq!(query.after_seq, Some(0));
         assert_eq!(query.resolved_page_size(), 2);
 
         let flattened: FlattenedSeqWindowListQuery =
-            serde_urlencoded::from_str("afterSeq=0&limit=3").expect("flattened urlencoded query");
+            serde_urlencoded::from_str("afterSeq=0&page_size=3")
+                .expect("flattened urlencoded query");
         assert_eq!(flattened.paging.after_seq, Some(0));
         assert_eq!(flattened.paging.resolved_page_size(), 3);
+    }
+
+    #[test]
+    fn oauth_protocol_error_body_serializes_rfc6749_shape() {
+        let body = OAuthProtocolErrorBody::from_iam_oauth_code(
+            "iam_oauth_client_invalid",
+            "client_id is required",
+        );
+        let json = serde_json::to_value(body).expect("serialize");
+        assert_eq!(json["error"], "invalid_client");
+        assert_eq!(json["error_description"], "client_id is required");
+        assert!(json.get("code").is_none());
     }
 }

@@ -152,7 +152,7 @@ mod tests {
             },
             &config,
         );
-        assert_eq!(ip, "203.0.113.10".parse().expect("peer"));
+        assert_eq!(ip, "203.0.113.10".parse::<IpAddr>().expect("peer"));
     }
 
     #[test]
@@ -171,6 +171,6 @@ mod tests {
             },
             &config,
         );
-        assert_eq!(ip, "203.0.113.10".parse().expect("client"));
+        assert_eq!(ip, "203.0.113.10".parse::<IpAddr>().expect("client"));
     }
 }

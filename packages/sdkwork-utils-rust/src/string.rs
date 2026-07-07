@@ -200,6 +200,47 @@ pub fn template(pattern: &str, values: &std::collections::HashMap<&str, &str>) -
         .into_owned()
 }
 
+/// Splits `report.txt` into (`report`, Some(`txt`)); extensionless names keep the full string as stem.
+pub fn split_filename_stem_extension(file_name: &str) -> (String, Option<String>) {
+    match file_name.rsplit_once('.') {
+        Some((stem, extension))
+            if !stem.is_empty() && !extension.is_empty() && extension.len() <= 64 =>
+        {
+            (stem.to_string(), Some(extension.to_string()))
+        }
+        _ => (file_name.to_string(), None),
+    }
+}
+
+/// Formats `stem (N)` or `stem (N).ext` — aligned with Drive upload/copy sibling naming.
+pub fn format_numbered_filename_variant(stem: &str, index: u32, extension: Option<&str>) -> String {
+    let suffixed_stem = format!("{stem} ({index})");
+    match extension {
+        Some(ext) if !ext.is_empty() => format!("{suffixed_stem}.{ext}"),
+        _ => suffixed_stem,
+    }
+}
+
+/// Allocates the first free variant: `base`, then `base (1)`, `base (2)`, …
+pub fn allocate_unique_display_name(
+    base_name: &str,
+    mut is_taken: impl FnMut(&str) -> bool,
+) -> String {
+    if !is_taken(base_name) {
+        return base_name.to_string();
+    }
+
+    let (stem, extension) = split_filename_stem_extension(base_name);
+    for index in 1..=9_999 {
+        let candidate = format_numbered_filename_variant(&stem, index, extension.as_deref());
+        if !is_taken(&candidate) {
+            return candidate;
+        }
+    }
+
+    format_numbered_filename_variant(&stem, 9_999, extension.as_deref())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -223,5 +264,22 @@ mod tests {
     fn truncate_and_mask() {
         assert_eq!(truncate("abcdef", 5, None), "ab...");
         assert_eq!(mask("1234567890", 2, 2, None), "12******90");
+    }
+
+    #[test]
+    fn filename_sibling_naming() {
+        assert_eq!(
+            split_filename_stem_extension("report.txt"),
+            ("report".to_string(), Some("txt".to_string()))
+        );
+        assert_eq!(
+            format_numbered_filename_variant("report", 1, Some("txt")),
+            "report (1).txt"
+        );
+        let taken = ["report.txt".to_string(), "report (1).txt".to_string()];
+        let allocated = allocate_unique_display_name("report.txt", |candidate| {
+            taken.iter().any(|name| name == candidate)
+        });
+        assert_eq!(allocated, "report (2).txt");
     }
 }

@@ -139,3 +139,80 @@ export function template(
 ): string {
   return pattern.replace(TEMPLATE_KEY, (match, key: string) => values[key] ?? match);
 }
+
+export interface SplitDisplayFileName {
+  stem: string;
+  extension: string | null;
+}
+
+export function splitDisplayFileName(fileName: string): SplitDisplayFileName {
+  const lastDot = fileName.lastIndexOf(".");
+  if (lastDot <= 0 || lastDot === fileName.length - 1) {
+    return { stem: fileName, extension: null };
+  }
+  const extension = fileName.slice(lastDot + 1);
+  if (extension.length === 0 || extension.length > 64) {
+    return { stem: fileName, extension: null };
+  }
+  return { stem: fileName.slice(0, lastDot), extension };
+}
+
+export function formatNumberedFilenameVariant(
+  stem: string,
+  index: number,
+  extension: string | null,
+): string {
+  const suffixedStem = `${stem} (${index})`;
+  return extension ? `${suffixedStem}.${extension}` : suffixedStem;
+}
+
+export function hasSiblingNameConflict(
+  candidateName: string,
+  siblingNames: Iterable<string>,
+  excludeName?: string,
+): boolean {
+  for (const name of siblingNames) {
+    if (excludeName !== undefined && name === excludeName) {
+      continue;
+    }
+    if (name === candidateName) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function allocateUniqueSiblingName(
+  baseName: string,
+  siblingNames: Iterable<string>,
+  excludeName?: string,
+): string {
+  const occupied = new Set<string>();
+  for (const name of siblingNames) {
+    if (excludeName !== undefined && name === excludeName) {
+      continue;
+    }
+    occupied.add(name);
+  }
+  return allocateUniqueSiblingNameFromOccupied(baseName, occupied);
+}
+
+function allocateUniqueSiblingNameFromOccupied(
+  baseName: string,
+  occupied: Set<string>,
+): string {
+  if (!occupied.has(baseName)) {
+    return baseName;
+  }
+  const { stem, extension } = splitDisplayFileName(baseName);
+  for (let index = 1; index <= 9999; index += 1) {
+    const candidate = formatNumberedFilenameVariant(stem, index, extension);
+    if (!occupied.has(candidate)) {
+      return candidate;
+    }
+  }
+  return formatNumberedFilenameVariant(stem, 9999, extension);
+}
+
+/** @deprecated Use allocateUniqueSiblingName */
+export const resolveUniqueSiblingName = allocateUniqueSiblingName;

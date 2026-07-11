@@ -812,19 +812,23 @@ impl SdkWorkProblemRouting {
     }
 }
 
-/// Redact numeric and uuid-like HTTP path segments for Problem `instance` values.
+/// Redact identifier-like HTTP path segments for Problem `instance` values
+/// (`API_SPEC.md` §15.2).
+///
+/// Recognizes numeric IDs, UUID-like values, business resource IDs following
+/// the `<prefix>_<suffix>` pattern (suffix ≥8 alphanumeric chars, e.g.
+/// `c_direct_09a8255a1fd3632675c2d355`), and long opaque tokens (≥16
+/// alphanumeric chars). Route template segments (e.g. `{conversationId}`,
+/// `{*path}`) and known API path literals (e.g. `im`, `v3`, `api`, `chat`,
+/// `conversations`, `messages`) are preserved because they do not match these
+/// identifier patterns.
 pub fn redact_http_path_segments(path: &str) -> String {
     path.split('/')
         .map(|segment| {
             if segment.is_empty() {
                 return String::new();
             }
-            if segment.chars().all(|ch| ch.is_ascii_digit())
-                || segment.len() >= 32
-                    && segment
-                        .chars()
-                        .all(|ch| ch.is_ascii_hexdigit() || ch == '-')
-            {
+            if is_redactable_id_segment(segment) {
                 "{id}".to_owned()
             } else {
                 segment.to_owned()
@@ -832,6 +836,34 @@ pub fn redact_http_path_segments(path: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("/")
+}
+
+/// Checks whether an HTTP path segment looks like a redactable resource identifier.
+fn is_redactable_id_segment(segment: &str) -> bool {
+    // Pure numeric IDs (e.g. `42`, `99`).
+    if segment.chars().all(|ch| ch.is_ascii_digit()) {
+        return true;
+    }
+    // UUID-like IDs (≥32 hex digits with optional dashes).
+    if segment.len() >= 32
+        && segment
+            .chars()
+            .all(|ch| ch.is_ascii_hexdigit() || ch == '-')
+    {
+        return true;
+    }
+    // Business resource IDs: `<prefix>_<suffix>` where the final suffix is
+    // ≥8 alphanumeric chars (e.g. `c_direct_09a8255a1fd3632675c2d355`).
+    if let Some((_, suffix)) = segment.rsplit_once('_') {
+        if suffix.len() >= 8 && suffix.chars().all(|ch| ch.is_ascii_alphanumeric()) {
+            return true;
+        }
+    }
+    // Long opaque tokens (≥16 alphanumeric chars, no separators).
+    if segment.len() >= 16 && segment.chars().all(|ch| ch.is_ascii_alphanumeric()) {
+        return true;
+    }
+    false
 }
 
 fn non_empty_text(value: Option<&str>) -> Option<String> {
@@ -907,6 +939,9 @@ pub struct SdkWorkProblemDetail {
     pub trace_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub operation_id: Option<String>,
+    /// i18n message key derived from `code` (`API_SPEC.md` §15.2).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub i18n_key: Option<String>,
 }
 
 impl SdkWorkProblemDetail {
@@ -951,6 +986,8 @@ impl SdkWorkProblemDetail {
         trace_id: impl Into<String>,
     ) -> Self {
         let detail_text = Self::client_safe_detail(result_code, &detail.into());
+        // i18n key auto-filled per API_SPEC.md §15.2 (`errors.result.<code>`).
+        let i18n_key = Some(format!("errors.result.{}", result_code.as_i32()));
         Self {
             problem_type: format!("https://docs.sdkwork.com/problems/{}", result_code.as_i32()),
             title: result_code.title().to_string(),
@@ -964,6 +1001,7 @@ impl SdkWorkProblemDetail {
             code: result_code.as_i32(),
             trace_id: trace_id.into(),
             operation_id: None,
+            i18n_key,
         }
     }
 }
@@ -1051,10 +1089,26 @@ mod tests {
     }
 
     #[test]
+    fn problem_detail_includes_i18n_key() {
+        let problem = SdkWorkProblemDetail::platform(
+            SdkWorkResultCode::ServiceUnavailable,
+            "dependency down",
+            "trace-503",
+        );
+        assert_eq!(problem.i18n_key.as_deref(), Some("errors.result.50301"));
+    }
+
+    #[test]
     fn redact_http_path_segments_masks_ids() {
         assert_eq!(
             "/app/v3/api/users/{id}/orders/{id}",
             redact_http_path_segments("/app/v3/api/users/42/orders/99")
+        );
+        assert_eq!(
+            "/im/v3/api/chat/conversations/{id}/messages",
+            redact_http_path_segments(
+                "/im/v3/api/chat/conversations/c_direct_09a8255a1fd3632675c2d355/messages"
+            )
         );
     }
 

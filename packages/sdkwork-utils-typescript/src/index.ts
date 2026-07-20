@@ -12,6 +12,8 @@ export * from "./collection.js";
 export * from "./validation.js";
 export * from "./id.js";
 export * from "./encoding.js";
+export * from "./gatewayEndpoint.js";
+export * from "./gatewayToolSnippets.js";
 export * from "./path.js";
 export * from "./object.js";
 export * from "./crypto.js";

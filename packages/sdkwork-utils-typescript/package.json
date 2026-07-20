@@ -51,6 +51,14 @@
       "types": "./dist/encoding.d.ts",
       "import": "./dist/encoding.js"
     },
+    "./gatewayEndpoint": {
+      "types": "./dist/gatewayEndpoint.d.ts",
+      "import": "./dist/gatewayEndpoint.js"
+    },
+    "./gatewayToolSnippets": {
+      "types": "./dist/gatewayToolSnippets.d.ts",
+      "import": "./dist/gatewayToolSnippets.js"
+    },
     "./i18n": {
       "types": "./dist/i18n.d.ts",
       "import": "./dist/i18n.js"

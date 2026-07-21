@@ -1,11 +1,11 @@
-[workspace]
+﻿[workspace]
 resolver = "2"
 members = ["packages/sdkwork-utils-rust"]
 
 [workspace.package]
 edition = "2021"
 version = "0.10.0"
-license = "MIT"
+license = "AGPL-3.0-or-later"
 authors = ["SDKWork"]
 repository = "https://github.com/sdkwork/sdkwork-utils"
 description = "SDKWork cross-language utility libraries"

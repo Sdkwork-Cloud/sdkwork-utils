@@ -75,24 +75,16 @@ fn parse_strict(raw: &str) -> Result<i64, &'static str> {
     }
 
     let bytes = raw.as_bytes();
-    let (negative, digits) = match bytes.first() {
-        Some(b'-') => (true, &bytes[1..]),
-        Some(b'+') => (false, &bytes[1..]),
-        _ => (false, bytes),
+    let digits = match bytes.first() {
+        Some(b'-') => &bytes[1..],
+        _ => bytes,
     };
 
     if digits.is_empty() || !digits.iter().all(|b| b.is_ascii_digit()) {
         return Err(ERR_INVALID);
     }
 
-    let magnitude = i64::from_str_radix(std::str::from_utf8(digits).map_err(|_| ERR_INVALID)?, 10)
-        .map_err(|_| ERR_OUT_OF_RANGE)?;
-
-    if negative {
-        magnitude.checked_neg().ok_or(ERR_OUT_OF_RANGE)
-    } else {
-        Ok(magnitude)
-    }
+    raw.parse::<i64>().map_err(|_| ERR_OUT_OF_RANGE)
 }
 
 #[cfg(test)]
@@ -144,6 +136,20 @@ mod tests {
         let json = r#"{"value":"-99"}"#;
         let wrapper: Wrapper = serde_json::from_str(json).unwrap();
         assert_eq!(wrapper.value, -99);
+    }
+
+    #[test]
+    fn deserializes_minimum_int64_string() {
+        let json = r#"{"value":"-9223372036854775808"}"#;
+        let wrapper: Wrapper = serde_json::from_str(json).unwrap();
+        assert_eq!(wrapper.value, i64::MIN);
+    }
+
+    #[test]
+    fn rejects_leading_plus_sign() {
+        let json = r#"{"value":"+99"}"#;
+        let result: Result<Wrapper, _> = serde_json::from_str(json);
+        assert!(result.is_err());
     }
 
     #[test]

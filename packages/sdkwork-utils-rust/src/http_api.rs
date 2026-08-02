@@ -220,6 +220,13 @@ pub const DEFAULT_LIST_PAGE_SIZE: i32 = 20;
 /// Maximum allowed page size for offset list queries (`SdkWorkListQuery.pageSize`).
 pub const MAX_LIST_PAGE_SIZE: i32 = 200;
 
+/// Maximum allowed page number for offset list queries.
+///
+/// Offset pagination targets low-volume stable lists (PAGINATION_SPEC §3);
+/// deep pages degrade to O(offset) scans and can overflow `(page - 1) * page_size`
+/// on i64. 10_000 pages × 200 rows caps the practical offset range at 2M rows.
+pub const MAX_LIST_PAGE: i64 = 10_000;
+
 /// Parsed offset pagination parameters for database-backed list handlers.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct OffsetListPageParams {
@@ -233,7 +240,7 @@ impl OffsetListPageParams {
         let page_size = page_size
             .unwrap_or(i64::from(DEFAULT_LIST_PAGE_SIZE))
             .clamp(1, i64::from(MAX_LIST_PAGE_SIZE));
-        let page = page.unwrap_or(1).max(1);
+        let page = page.unwrap_or(1).clamp(1, MAX_LIST_PAGE);
         let offset = (page - 1) * page_size;
         Self {
             page,
@@ -253,7 +260,7 @@ pub fn validated_offset_list_params(
         return Err(SdkWorkResultCode::InvalidParameter);
     }
     let page = page.unwrap_or(1);
-    if page < 1 {
+    if page < 1 || page > MAX_LIST_PAGE {
         return Err(SdkWorkResultCode::InvalidParameter);
     }
     Ok(OffsetListPageParams {
@@ -264,11 +271,14 @@ pub fn validated_offset_list_params(
 }
 
 /// Build offset pagination metadata from already-validated `page` and `page_size` values.
+///
+/// Callers must pre-validate through [`validated_offset_list_params`]; the
+/// offset arithmetic is checked so a misuse cannot overflow i64.
 pub fn offset_list_page_params_from_values(page: i64, page_size: i64) -> OffsetListPageParams {
     OffsetListPageParams {
         page,
         page_size,
-        offset: (page - 1) * page_size,
+        offset: (page - 1).saturating_mul(page_size),
     }
 }
 
@@ -1130,6 +1140,23 @@ mod tests {
             validated_offset_list_params(Some(0), Some(20)),
             Err(SdkWorkResultCode::InvalidParameter)
         );
+        assert_eq!(
+            validated_offset_list_params(Some(MAX_LIST_PAGE + 1), Some(20)),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+        // A page large enough to overflow `(page - 1) * page_size` must be
+        // rejected instead of wrapping.
+        assert_eq!(
+            validated_offset_list_params(Some(i64::MAX), Some(200)),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+    }
+
+    #[test]
+    fn offset_list_page_params_parse_clamps_excessive_page() {
+        let params = OffsetListPageParams::parse(Some(i64::MAX), Some(200));
+        assert_eq!(params.page, MAX_LIST_PAGE);
+        assert_eq!(params.offset, (MAX_LIST_PAGE - 1) * 200);
     }
 
     #[test]

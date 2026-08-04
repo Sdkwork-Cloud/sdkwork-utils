@@ -1031,7 +1031,7 @@ impl SdkWorkProblemDetail {
     }
 }
 
-/// Maps legacy Claw Router string wire codes and symbolic aliases to platform codes.
+/// Maps legacy Cloud Router string wire codes and symbolic aliases to platform codes.
 ///
 /// **Note:** This mapper exists for sibling SDKWork applications that still emit
 /// legacy wire codes. SDKWork IM (pre-launch) does not use or invoke this mapper.
@@ -1073,7 +1073,7 @@ mod tests {
     }
 
     #[test]
-    fn legacy_claw_router_codes_map_to_platform_codes() {
+    fn legacy_cloud_router_codes_map_to_platform_codes() {
         assert_eq!(40401, legacy_wire_result_code("4004").as_i32());
         assert_eq!(40101, legacy_wire_result_code("4010").as_i32());
         assert_eq!(50301, legacy_wire_result_code("5030").as_i32());

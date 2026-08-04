@@ -40,14 +40,14 @@ test("resolveGatewayEndpointForKind selects endpoint by kind", () => {
 
 test("buildSharedGatewayToolSnippets emits canonical gateway tool config", () => {
   const snippets = buildSharedGatewayToolSnippets({
-    apiKeyPlaceholder: "<YOUR_CLAW_ROUTER_API_KEY>",
+    apiKeyPlaceholder: "<YOUR_CLOUDROUTER_API_KEY>",
     openAiBaseUrl: "https://console.example.test/v1",
     anthropicBaseUrl: "https://console.example.test/anthropic",
     geminiBaseUrl: "https://console.example.test/google/v1beta",
   });
 
-  assert.match(snippets.codex, /model_provider = "clawrouter"/);
-  assert.match(snippets.codex, /env_key = "CLAW_ROUTER_API_KEY"/);
+  assert.match(snippets.codex, /model_provider = "cloudrouter"/);
+  assert.match(snippets.codex, /env_key = "CLOUDROUTER_API_KEY"/);
   assert.match(
     snippets["claude-code"],
     /ANTHROPIC_BASE_URL="https:\/\/console\.example\.test\/anthropic"/,

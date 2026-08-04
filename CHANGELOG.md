@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0
+
+- Add **money** module: `money_symbol`, `format_money`, `format_money_digits`, `format_money_minor_units`, `format_money_options`
+- Industry-aligned money display across all 8 language packages: symbol/narrow_symbol/code/name/decimal/accounting/compact modes, per-locale separators and symbol placement (en/zh/ja/ko prefix; de/fr/it/es/ru suffix), half-up rounding on the shortest decimal representation
+- 19 modules, 117 contract operations
+- All package versions aligned to 0.11.0
+
 ## 0.10.0
 
 - Conformance quality release: Java, Kotlin, and C# conformance tests now iterate all 112 contract operations

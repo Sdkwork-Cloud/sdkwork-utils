@@ -523,6 +523,57 @@ class ConformanceTest {
             assertEquals(item.get("output"), CurrencyUtils.formatCurrency(((Number) item.get("amount")).doubleValue(), (String) item.get("code"), (String) item.get("locale")));
         }
 
+        Map<String, Object> moneyCases = (Map<String, Object>) fixtures.get("money");
+        for (Map<String, Object> item : (List<Map<String, Object>>) moneyCases.get("money_symbol")) {
+            assertEquals(item.get("output"), MoneyUtils.moneySymbol((String) item.get("currency")));
+        }
+        for (Map<String, Object> item : (List<Map<String, Object>>) moneyCases.get("format_money")) {
+            Object value = item.get("value");
+            String result = value == null ? null : MoneyUtils.formatMoney(
+                    ((Number) value).doubleValue(),
+                    (String) item.get("currency"),
+                    (String) item.get("locale"),
+                    (String) item.get("mode"));
+            assertEquals(item.get("output"), result);
+        }
+        for (Map<String, Object> item : (List<Map<String, Object>>) moneyCases.get("format_money_digits")) {
+            assertEquals(item.get("output"), MoneyUtils.formatMoneyDigits(
+                    ((Number) item.get("value")).doubleValue(),
+                    (String) item.get("currency"),
+                    (String) item.get("locale"),
+                    (String) item.get("mode"),
+                    ((Number) item.get("min_fraction")).intValue(),
+                    ((Number) item.get("max_fraction")).intValue()));
+        }
+        for (Map<String, Object> item : (List<Map<String, Object>>) moneyCases.get("format_money_minor_units")) {
+            Object minor = item.get("minor");
+            String result;
+            if (minor == null) {
+                result = null;
+            } else {
+                double minorValue = ((Number) minor).doubleValue();
+                result = minorValue != Math.floor(minorValue)
+                        ? null
+                        : MoneyUtils.formatMoneyMinorUnits(
+                                ((Number) minor).longValue(),
+                                (String) item.get("currency"),
+                                (String) item.get("locale"),
+                                (String) item.get("mode"));
+            }
+            assertEquals(item.get("output"), result);
+        }
+        for (Map<String, Object> item : (List<Map<String, Object>>) moneyCases.get("format_money_options")) {
+            assertEquals(item.get("output"), MoneyUtils.formatMoneyOptions(
+                    ((Number) item.get("value")).doubleValue(),
+                    (String) item.get("currency"),
+                    (String) item.get("locale"),
+                    (String) item.get("mode"),
+                    ((Number) item.get("min_fraction")).intValue(),
+                    ((Number) item.get("max_fraction")).intValue(),
+                    (String) item.get("sign"),
+                    (Boolean) item.get("use_grouping")));
+        }
+
         Map<String, Object> bloomCases = (Map<String, Object>) fixtures.get("bloom");
         for (Map<String, Object> item : (List<Map<String, Object>>) bloomCases.get("create")) {
             BloomUtils.BloomFilter filter = BloomUtils.create(((Number) item.get("expected_items")).intValue(), ((Number) item.get("false_positive_rate")).doubleValue());

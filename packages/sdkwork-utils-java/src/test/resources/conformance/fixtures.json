@@ -1,5 +1,5 @@
 {
-  "version": "0.9.0",
+  "version": "0.11.0",
   "string": {
     "is_blank": [
       { "input": null, "output": true },
@@ -268,6 +268,71 @@
       { "value": 512, "decimals": 1, "output": "512 B" },
       { "value": 1536, "decimals": 1, "output": "1.5 KB" },
       { "value": 1048576, "decimals": 2, "output": "1.00 MB" }
+    ]
+  },
+  "money": {
+    "money_symbol": [
+      { "currency": "USD", "output": "$" },
+      { "currency": "CNY", "output": "¥" },
+      { "currency": "EUR", "output": "€" },
+      { "currency": "JPY", "output": "¥" },
+      { "currency": "XYZ", "output": null },
+      { "currency": "usd", "output": null }
+    ],
+    "format_money": [
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "output": "$1,234.50" },
+      { "value": 1234.5, "currency": "USD", "locale": "de-DE", "mode": "symbol", "output": "1.234,50 $" },
+      { "value": 1234.5, "currency": "CNY", "locale": "zh-CN", "mode": "symbol", "output": "¥1,234.50" },
+      { "value": 5, "currency": "EUR", "locale": "fr-FR", "mode": "symbol", "output": "5,00 €" },
+      { "value": 100, "currency": "USD", "locale": "en-US", "mode": "code", "output": "USD 100.00" },
+      { "value": 1234.5, "currency": "USD", "locale": "de-DE", "mode": "code", "output": "1.234,50 USD" },
+      { "value": 1234.5, "currency": "CNY", "locale": "zh-CN", "mode": "name", "output": "1,234.50人民币" },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "name", "output": "1,234.50 US dollars" },
+      { "value": 1234.5, "currency": "USD", "locale": "de-DE", "mode": "name", "output": "1.234,50 US-Dollar" },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "decimal", "output": "1,234.5" },
+      { "value": -1234.5, "currency": "USD", "locale": "en-US", "mode": "accounting", "output": "($1,234.50)" },
+      { "value": -1234.5, "currency": "USD", "locale": "de-DE", "mode": "accounting", "output": "-1.234,50 $" },
+      { "value": 2500000, "currency": "USD", "locale": "en-US", "mode": "compact", "output": "$2.5M" },
+      { "value": 12000, "currency": "CNY", "locale": "zh-CN", "mode": "compact", "output": "¥1.2万" },
+      { "value": 999, "currency": "USD", "locale": "en-US", "mode": "compact", "output": "$999" },
+      { "value": -5, "currency": "EUR", "locale": "en-US", "mode": "symbol", "output": "-€5.00" },
+      { "value": 1234.5, "currency": "XYZ", "locale": "en-US", "mode": "symbol", "output": null },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "invalid", "output": null },
+      { "value": 1234.5, "currency": "usd", "locale": "en-US", "mode": "symbol", "output": null },
+      { "value": null, "currency": "USD", "locale": "en-US", "mode": "symbol", "output": null }
+    ],
+    "format_money_digits": [
+      { "value": 0.15, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "output": "$0.15" },
+      { "value": 0.12345, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 4, "output": "$0.1235" },
+      { "value": 0.0049, "currency": "USD", "locale": "en-US", "mode": "decimal", "min_fraction": 0, "max_fraction": 6, "output": "0.0049" },
+      { "value": 12, "currency": "USD", "locale": "en-US", "mode": "decimal", "min_fraction": 0, "max_fraction": 6, "output": "12" },
+      { "value": 0.000001, "currency": "USD", "locale": "en-US", "mode": "decimal", "min_fraction": 0, "max_fraction": 6, "output": "0.000001" },
+      { "value": 29.9, "currency": "CNY", "locale": "zh-CN", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "output": "¥29.90" },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 0, "max_fraction": 0, "output": "$1,235" },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "decimal", "min_fraction": 5, "max_fraction": 2, "output": null },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "invalid", "min_fraction": 0, "max_fraction": 2, "output": null },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": -1, "max_fraction": 2, "output": null },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 0, "max_fraction": 19, "output": null }
+    ],
+    "format_money_minor_units": [
+      { "minor": 123450, "currency": "USD", "locale": "en-US", "mode": "symbol", "output": "$1,234.50" },
+      { "minor": 1234, "currency": "JPY", "locale": "ja-JP", "mode": "symbol", "output": "¥1,234" },
+      { "minor": 12345, "currency": "USD", "locale": "en-US", "mode": "code", "output": "USD 123.45" },
+      { "minor": -5, "currency": "USD", "locale": "en-US", "mode": "symbol", "output": "-$0.05" },
+      { "minor": 5, "currency": "BHD", "locale": "en-US", "mode": "code", "output": "BHD 0.005" },
+      { "minor": 12345, "currency": "XYZ", "locale": "en-US", "mode": "symbol", "output": null },
+      { "minor": 5.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "output": null }
+    ],
+    "format_money_options": [
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "always", "use_grouping": true, "output": "+$1,234.50" },
+      { "value": -5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "always", "use_grouping": true, "output": "-$5.00" },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "auto", "use_grouping": false, "output": "$1234.50" },
+      { "value": 0, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "except_zero", "use_grouping": true, "output": "$0.00" },
+      { "value": 5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "except_zero", "use_grouping": true, "output": "+$5.00" },
+      { "value": -5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "never", "use_grouping": true, "output": "$5.00" },
+      { "value": 1234.5, "currency": "USD", "locale": "en-US", "mode": "symbol", "min_fraction": 2, "max_fraction": 2, "sign": "bogus", "use_grouping": true, "output": null },
+      { "value": 12000, "currency": "CNY", "locale": "zh-CN", "mode": "compact", "min_fraction": 0, "max_fraction": 1, "sign": "auto", "use_grouping": true, "output": "¥1.2万" },
+      { "value": -1234.5, "currency": "USD", "locale": "en-US", "mode": "accounting", "min_fraction": 2, "max_fraction": 2, "sign": "always", "use_grouping": true, "output": "($1,234.50)" }
     ]
   }
 }

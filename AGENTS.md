@@ -25,7 +25,7 @@ This repository is a shared multi-language utility library, not an SDKWork appli
 ## Local Dictionary Structure
 
 - `AGENTS.md`: agent execution entrypoint for this repository.
-- `specs/utils.contract.json`: authoritative cross-language API contract (v0.7, 17 modules, 104 operations).
+- `specs/utils.contract.json`: authoritative cross-language API contract (v0.11, 19 modules, 117 operations).
 - `specs/conformance/coverage-thresholds.json`: per-language conformance test coverage minimums.
 - `specs/naming.aliases.json`: idiomatic export name aliases per language.
 - `specs/conformance/fixtures.json`: shared behavioral test vectors.
@@ -42,7 +42,7 @@ This repository is a shared multi-language utility library, not an SDKWork appli
 ## Spec Resolution Order
 
 1. Read this `AGENTS.md`.
-2. Read `specs/utils.contract.json`, `specs/naming.aliases.json`, and `specs/conformance/coverage-thresholds.json` for API parity, naming, and test coverage gates (v0.10, 18 modules, 112 operations).
+2. Read `specs/utils.contract.json`, `specs/naming.aliases.json`, and `specs/conformance/coverage-thresholds.json` for API parity, naming, and test coverage gates (v0.11, 19 modules, 117 operations).
 3. Read `specs/conformance/fixtures.json` when changing behavior or tests.
 4. Read the nearest package README for language-specific install and verification.
 5. Read task-specific files from `../sdkwork-specs/` (language specs on demand only).

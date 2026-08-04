@@ -4,7 +4,7 @@ Domain: shared utilities
 Capability: cross-language common helpers  
 Package type: library  
 Status: standard  
-Version: 0.10.0
+Version: 0.11.0
 
 .NET 8 implementation of the SDKWork utils contract.
 

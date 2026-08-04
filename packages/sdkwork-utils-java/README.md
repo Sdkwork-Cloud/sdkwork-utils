@@ -4,7 +4,7 @@ Domain: shared utilities
 Capability: cross-language common helpers  
 Package type: library  
 Status: standard  
-Version: 0.10.0
+Version: 0.11.0
 
 Java 21 implementation of the SDKWork utils contract.
 
@@ -24,13 +24,13 @@ Static methods on `*Utils` classes. See [`../../specs/naming.aliases.json`](../.
 
 ## Configuration
 
-Maven coordinates: `com.sdkwork:sdkwork-utils-java:0.10.0`
+Maven coordinates: `com.sdkwork:sdkwork-utils-java:0.11.0`
 
 ```xml
 <dependency>
   <groupId>com.sdkwork</groupId>
   <artifactId>sdkwork-utils-java</artifactId>
-  <version>0.10.0</version>
+  <version>0.11.0</version>
 </dependency>
 ```
 

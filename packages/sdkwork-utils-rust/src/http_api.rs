@@ -624,6 +624,21 @@ impl SdkWorkCursorListQuery {
             offset,
         })
     }
+
+    /// Resolve only the strictly-validated page size without interpreting the cursor.
+    ///
+    /// Keyset-paged list handlers carry opaque (signed/encrypted) cursors that
+    /// must be decoded by the operation's own cursor codec, never parsed as a
+    /// numeric offset. Numeric offset cursors are forbidden by
+    /// `PAGINATION_SPEC.md` (§2.4, §12); this returns the validated
+    /// `page_size` (1..=MAX_LIST_PAGE_SIZE) or `InvalidParameter` (40003).
+    pub fn resolve_page_size(&self) -> Result<usize, SdkWorkResultCode> {
+        let page_size = self.page_size.unwrap_or(DEFAULT_LIST_PAGE_SIZE);
+        if page_size < 1 || page_size > MAX_LIST_PAGE_SIZE {
+            return Err(SdkWorkResultCode::InvalidParameter);
+        }
+        Ok(page_size as usize)
+    }
 }
 
 /// Single-field page size query (`page_size` HTTP query wire).
@@ -1268,6 +1283,33 @@ mod tests {
         let from_page_size: SdkWorkCursorListQuery =
             serde_urlencoded::from_str("page_size=12&cursor=3").expect("page_size");
         assert_eq!(from_page_size.resolve().expect("resolve").page_size, 12);
+    }
+
+    #[test]
+    fn sdkwork_cursor_list_query_resolve_page_size_leaves_opaque_cursor_untouched() {
+        let query: SdkWorkCursorListQuery =
+            serde_urlencoded::from_str("page_size=12&cursor=opaque.jwt.1a2b3c").expect("query");
+        // Opaque non-numeric cursors must not be rejected by page-size resolution.
+        assert_eq!(query.resolve_page_size().expect("page size"), 12);
+        assert_eq!(query.cursor.as_deref(), Some("opaque.jwt.1a2b3c"));
+    }
+
+    #[test]
+    fn sdkwork_cursor_list_query_resolve_page_size_rejects_out_of_range() {
+        let too_large: SdkWorkCursorListQuery =
+            serde_urlencoded::from_str("page_size=201").expect("query");
+        assert_eq!(
+            too_large.resolve_page_size(),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+        let too_small: SdkWorkCursorListQuery =
+            serde_urlencoded::from_str("page_size=0").expect("query");
+        assert_eq!(
+            too_small.resolve_page_size(),
+            Err(SdkWorkResultCode::InvalidParameter)
+        );
+        let defaulted: SdkWorkCursorListQuery = serde_urlencoded::from_str("").expect("query");
+        assert_eq!(defaulted.resolve_page_size().expect("default"), 20);
     }
 
     #[derive(Debug, Default, Deserialize)]

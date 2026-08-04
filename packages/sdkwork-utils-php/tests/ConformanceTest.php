@@ -16,6 +16,7 @@ use Sdkwork\Utils\DateTimeUtils;
 use Sdkwork\Utils\EncodingUtils;
 use Sdkwork\Utils\I18nUtils;
 use Sdkwork\Utils\IdUtils;
+use Sdkwork\Utils\MoneyUtils;
 use Sdkwork\Utils\NumberUtils;
 use Sdkwork\Utils\ObjectUtils;
 use Sdkwork\Utils\OptionalUtils;
@@ -451,6 +452,58 @@ final class ConformanceTest extends TestCase
 
         foreach ($this->fixtures['bytes']['format_bytes'] as $item) {
             $this->assertSame($item['output'], BytesUtils::formatBytes($item['value'], $item['decimals']));
+        }
+
+        foreach ($this->fixtures['money']['money_symbol'] as $item) {
+            $this->assertSame($item['output'], MoneyUtils::moneySymbol($item['currency']));
+        }
+        foreach ($this->fixtures['money']['format_money'] as $item) {
+            $actual = $item['value'] === null ? null : MoneyUtils::formatMoney(
+                $item['value'],
+                $item['currency'],
+                $item['locale'],
+                $item['mode']
+            );
+            $this->assertSame($item['output'], $actual);
+        }
+        foreach ($this->fixtures['money']['format_money_digits'] as $item) {
+            $this->assertSame(
+                $item['output'],
+                MoneyUtils::formatMoneyDigits(
+                    $item['value'],
+                    $item['currency'],
+                    $item['locale'],
+                    $item['mode'],
+                    $item['min_fraction'],
+                    $item['max_fraction']
+                )
+            );
+        }
+        foreach ($this->fixtures['money']['format_money_minor_units'] as $item) {
+            $actual = is_int($item['minor'])
+                ? MoneyUtils::formatMoneyMinorUnits(
+                    $item['minor'],
+                    $item['currency'],
+                    $item['locale'],
+                    $item['mode']
+                )
+                : null;
+            $this->assertSame($item['output'], $actual);
+        }
+        foreach ($this->fixtures['money']['format_money_options'] as $item) {
+            $this->assertSame(
+                $item['output'],
+                MoneyUtils::formatMoneyOptions(
+                    $item['value'],
+                    $item['currency'],
+                    $item['locale'],
+                    $item['mode'],
+                    $item['min_fraction'],
+                    $item['max_fraction'],
+                    $item['sign'],
+                    $item['use_grouping']
+                )
+            );
         }
     }
 }

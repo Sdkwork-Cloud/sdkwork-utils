@@ -11,6 +11,13 @@ import { base64Encode, hexEncode } from "../encoding.js";
 import { deepMerge, getPath, setPath } from "../object.js";
 import { hmacSha256, sha256Hash } from "../crypto.js";
 import { formatNumberLocale, formatDatetimeLocaleStr } from "../i18n.js";
+import {
+  formatMoney,
+  formatMoneyDigits,
+  formatMoneyMinorUnits,
+  formatMoneyOptions,
+  moneySymbol,
+} from "../money.js";
 import { coalesce, defaultIfBlank } from "../optional.js";
 import { ok, unwrapOr } from "../result.js";
 
@@ -60,4 +67,34 @@ test("optional result and i18n helpers", () => {
   assert.equal(formatNumberLocale(1234.5, "en-US", 2), "1,234.50");
   assert.equal(formatNumberLocale(1234.5, "de-DE", 2), "1.234,50");
   assert.ok(formatDatetimeLocaleStr("2024-06-15T14:30:00.000Z", "en-US")?.includes("2024"));
+});
+
+test("money helpers", () => {
+  assert.equal(moneySymbol("CNY"), "¥");
+  assert.equal(moneySymbol("xyz"), null);
+  assert.equal(formatMoney(1234.5, "USD", "en-US", "symbol"), "$1,234.50");
+  assert.equal(formatMoney(1234.5, "CNY", "zh-CN", "name"), "1,234.50人民币");
+  assert.equal(formatMoney(-1234.5, "USD", "en-US", "accounting"), "($1,234.50)");
+  assert.equal(formatMoney(12000, "CNY", "zh-CN", "compact"), "¥1.2万");
+  assert.equal(formatMoney("29.9", { currency: "CNY", locale: "zh-CN" }), "¥29.90");
+  assert.equal(
+    formatMoney("0.000001", {
+      currency: "USD",
+      locale: "en-US",
+      mode: "decimal",
+      minFractionDigits: 0,
+      maxFractionDigits: 6,
+    }),
+    "0.000001",
+  );
+  assert.equal(formatMoneyDigits(0.12345, "USD", "en-US", "symbol", 2, 4), "$0.1235");
+  assert.equal(formatMoneyMinorUnits(123450, "USD", "en-US", "symbol"), "$1,234.50");
+  assert.equal(formatMoneyMinorUnits(1234, "JPY", "ja-JP", "symbol"), "¥1,234");
+  assert.equal(
+    formatMoneyOptions(1234.5, "USD", "en-US", "symbol", 2, 2, "always", true),
+    "+$1,234.50",
+  );
+  assert.equal(formatMoneyOptions(1234.5, "USD", "en-US", "symbol", 2, 2, "auto", false), "$1234.50");
+  assert.equal(formatMoney("abc", { currency: "USD" }), null);
+  assert.equal(formatMoney(10, "USD", "en-US", "invalid" as never), null);
 });

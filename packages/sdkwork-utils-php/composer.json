@@ -1,6 +1,6 @@
 {
   "name": "sdkwork/utils-php",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "SDKWork cross-language utility library for PHP",
   "type": "library",
   "license": "MIT",

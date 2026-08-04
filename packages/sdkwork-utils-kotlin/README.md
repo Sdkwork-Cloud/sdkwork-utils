@@ -4,7 +4,7 @@ Domain: shared utilities
 Capability: cross-language common helpers  
 Package type: library  
 Status: standard  
-Version: 0.10.0
+Version: 0.11.0
 
 Kotlin/JVM implementation of the SDKWork utils contract.
 
@@ -27,7 +27,7 @@ Gradle (Kotlin DSL):
 
 ```kotlin
 dependencies {
-    implementation("com.sdkwork:utils:0.10.0")
+    implementation("com.sdkwork:utils:0.11.0")
 }
 ```
 

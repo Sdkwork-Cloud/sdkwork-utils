@@ -63,6 +63,10 @@
       "types": "./dist/i18n.d.ts",
       "import": "./dist/i18n.js"
     },
+    "./money": {
+      "types": "./dist/money.d.ts",
+      "import": "./dist/money.js"
+    },
     "./id": {
       "types": "./dist/id.d.ts",
       "import": "./dist/id.js"

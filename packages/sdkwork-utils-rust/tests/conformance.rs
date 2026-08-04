@@ -1,9 +1,10 @@
 use sdkwork_utils_rust::{
     add, base64_encode, base64url_decode, base64url_encode, bit_count, clamp, coalesce, create,
     deep_clone, default_if_blank, diff_millis, estimate_bit_count, estimate_hash_count,
+    format_money, format_money_digits, format_money_minor_units, format_money_options,
     format_number_locale, get_path, hash_count, hex_encode, hmac_sha256, is_blank, is_email,
-    is_ipv6, is_phone_e164, join_path, might_contain, parse_datetime, parse_number_locale,
-    set_path, sha256_hash, slugify, unique, ResultValue,
+    is_ipv6, is_phone_e164, join_path, might_contain, money_symbol, parse_datetime,
+    parse_number_locale, set_path, sha256_hash, slugify, unique, ResultValue,
 };
 use serde_json::{json, Value};
 use std::fs;
@@ -242,4 +243,93 @@ fn conformance_fixtures() {
         &membership,
         might["absent"].as_str().unwrap()
     ));
+
+    for item in fixtures["money"]["money_symbol"].as_array().unwrap() {
+        let symbol = money_symbol(item["currency"].as_str().unwrap());
+        if item["output"].is_null() {
+            assert!(symbol.is_none());
+        } else {
+            assert_eq!(symbol, Some(item["output"].as_str().unwrap().to_string()));
+        }
+    }
+    for item in fixtures["money"]["format_money"].as_array().unwrap() {
+        let result = item["value"]
+            .as_f64()
+            .map(|value| {
+                format_money(
+                    value,
+                    item["currency"].as_str().unwrap(),
+                    item["locale"].as_str().unwrap(),
+                    item["mode"].as_str().unwrap(),
+                )
+            })
+            .unwrap_or(None);
+        if item["output"].is_null() {
+            assert!(result.is_none());
+        } else {
+            assert_eq!(result, Some(item["output"].as_str().unwrap().to_string()));
+        }
+    }
+    for item in fixtures["money"]["format_money_digits"].as_array().unwrap() {
+        let min = item["min_fraction"].as_i64().unwrap();
+        let max = item["max_fraction"].as_i64().unwrap();
+        let result = if min < 0 || max > 18 || min > max {
+            None
+        } else {
+            format_money_digits(
+                item["value"].as_f64().unwrap(),
+                item["currency"].as_str().unwrap(),
+                item["locale"].as_str().unwrap(),
+                item["mode"].as_str().unwrap(),
+                min as u32,
+                max as u32,
+            )
+        };
+        if item["output"].is_null() {
+            assert!(result.is_none());
+        } else {
+            assert_eq!(result, Some(item["output"].as_str().unwrap().to_string()));
+        }
+    }
+    for item in fixtures["money"]["format_money_minor_units"]
+        .as_array()
+        .unwrap()
+    {
+        let result = item["minor"].as_i64().map(|minor| {
+            format_money_minor_units(
+                minor,
+                item["currency"].as_str().unwrap(),
+                item["locale"].as_str().unwrap(),
+                item["mode"].as_str().unwrap(),
+            )
+        });
+        if item["output"].is_null() {
+            assert!(result.unwrap_or(None).is_none());
+        } else {
+            assert_eq!(
+                result.unwrap_or(None),
+                Some(item["output"].as_str().unwrap().to_string())
+            );
+        }
+    }
+    for item in fixtures["money"]["format_money_options"]
+        .as_array()
+        .unwrap()
+    {
+        let result = format_money_options(
+            item["value"].as_f64().unwrap(),
+            item["currency"].as_str().unwrap(),
+            item["locale"].as_str().unwrap(),
+            item["mode"].as_str().unwrap(),
+            item["min_fraction"].as_u64().unwrap() as u32,
+            item["max_fraction"].as_u64().unwrap() as u32,
+            item["sign"].as_str().unwrap(),
+            item["use_grouping"].as_bool().unwrap(),
+        );
+        if item["output"].is_null() {
+            assert!(result.is_none());
+        } else {
+            assert_eq!(result, Some(item["output"].as_str().unwrap().to_string()));
+        }
+    }
 }

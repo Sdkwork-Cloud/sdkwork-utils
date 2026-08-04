@@ -29,7 +29,7 @@ Only cross-cutting utilities belong here. App-specific or framework-coupled logi
 
 Each package has its own README with language-specific examples and verification commands.
 
-## Modules (v0.8)
+## Modules (v0.11)
 
 | Module | Responsibility |
 | --- | --- |
@@ -37,6 +37,7 @@ Each package has its own README with language-specific examples and verification
 | `datetime` | UTC instants, ISO-8601 parse/format, arithmetic, unix millis, same-instant check |
 | `number` | Clamp, round, parse, percent format, in-range check, abs |
 | `currency` | ISO 4217 codes, minor units, locale currency format |
+| `money` | Industry money display: symbol/code/name/decimal/accounting/compact modes, locale-aware separators, minor units |
 | `bloom` | Probabilistic set membership (create, add, might_contain, sizing helpers) |
 | `bytes` | Human-readable byte sizes (`format_bytes`, 1024-based) |
 | `collection` | unique, chunk, group_by, flatten, compact, first, last, sort_by, key_by, filter, find |
@@ -68,7 +69,7 @@ sdkwork-utils/
 │   ├── verify.mjs            # Run all language tests
 │   ├── verify-contract.mjs   # Contract vs fixtures check
 │   ├── audit-conformance-coverage.mjs  # Per-language conformance coverage gate
-│   ├── check-modules.mjs     # 18 modules × 8 languages parity
+│   ├── check-modules.mjs     # 19 modules × 8 languages parity
 │   └── sync-conformance-fixtures.mjs
 ├── packages/sdkwork-utils-*/
 └── .github/workflows/verify.yml

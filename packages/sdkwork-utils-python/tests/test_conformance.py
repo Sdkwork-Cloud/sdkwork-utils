@@ -26,6 +26,13 @@ from sdkwork_utils.currency import (
     to_minor_units,
 )
 from sdkwork_utils.crypto import hmac_sha256, secure_compare, sha256_hash
+from sdkwork_utils.money import (
+    format_money,
+    format_money_digits,
+    format_money_minor_units,
+    format_money_options,
+    money_symbol,
+)
 from sdkwork_utils.datetime import (
     add_days,
     add_hours,
@@ -514,3 +521,50 @@ def test_conformance_fixtures() -> None:
 
     for item in FIXTURES["bytes"]["format_bytes"]:
         assert format_bytes(item["value"], item["decimals"]) == item["output"]
+
+    for item in FIXTURES["money"]["money_symbol"]:
+        assert money_symbol(item["currency"]) == item["output"]
+
+    for item in FIXTURES["money"]["format_money"]:
+        assert (
+            format_money(
+                item["value"], item["currency"], item["locale"], item["mode"]
+            )
+            == item["output"]
+        )
+
+    for item in FIXTURES["money"]["format_money_digits"]:
+        assert (
+            format_money_digits(
+                item["value"],
+                item["currency"],
+                item["locale"],
+                item["mode"],
+                item["min_fraction"],
+                item["max_fraction"],
+            )
+            == item["output"]
+        )
+
+    for item in FIXTURES["money"]["format_money_minor_units"]:
+        assert (
+            format_money_minor_units(
+                item["minor"], item["currency"], item["locale"], item["mode"]
+            )
+            == item["output"]
+        )
+
+    for item in FIXTURES["money"]["format_money_options"]:
+        assert (
+            format_money_options(
+                item["value"],
+                item["currency"],
+                item["locale"],
+                item["mode"],
+                item["min_fraction"],
+                item["max_fraction"],
+                item["sign"],
+                item["use_grouping"],
+            )
+            == item["output"]
+        )

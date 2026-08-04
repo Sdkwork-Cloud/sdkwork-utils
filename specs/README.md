@@ -4,7 +4,7 @@ Authoritative contracts for the cross-language utility library.
 
 | File | Purpose |
 | --- | --- |
-| [`utils.contract.json`](utils.contract.json) | Module and operation definitions (v0.4, 90 operations) |
+| [`utils.contract.json`](utils.contract.json) | Module and operation definitions (v0.11, 117 operations) |
 | [`naming.aliases.json`](naming.aliases.json) | Idiomatic export names per language |
 | [`conformance/fixtures.json`](conformance/fixtures.json) | Shared behavioral test vectors |
 

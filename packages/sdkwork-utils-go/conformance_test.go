@@ -290,6 +290,46 @@ type fixtures struct {
 			Output string  `json:"output"`
 		} `json:"format_currency"`
 	} `json:"currency"`
+	Money struct {
+		MoneySymbol []struct {
+			Currency string  `json:"currency"`
+			Output   *string `json:"output"`
+		} `json:"money_symbol"`
+		FormatMoney []struct {
+			Value    *float64 `json:"value"`
+			Currency string   `json:"currency"`
+			Locale   string   `json:"locale"`
+			Mode     string   `json:"mode"`
+			Output   *string  `json:"output"`
+		} `json:"format_money"`
+		FormatMoneyDigits []struct {
+			Value       float64 `json:"value"`
+			Currency    string  `json:"currency"`
+			Locale      string  `json:"locale"`
+			Mode        string  `json:"mode"`
+			MinFraction int     `json:"min_fraction"`
+			MaxFraction int     `json:"max_fraction"`
+			Output      *string `json:"output"`
+		} `json:"format_money_digits"`
+		FormatMoneyMinorUnits []struct {
+			Minor    *float64 `json:"minor"`
+			Currency string   `json:"currency"`
+			Locale   string   `json:"locale"`
+			Mode     string   `json:"mode"`
+			Output   *string  `json:"output"`
+		} `json:"format_money_minor_units"`
+		FormatMoneyOptions []struct {
+			Value       float64 `json:"value"`
+			Currency    string  `json:"currency"`
+			Locale      string  `json:"locale"`
+			Mode        string  `json:"mode"`
+			MinFraction int     `json:"min_fraction"`
+			MaxFraction int     `json:"max_fraction"`
+			Sign        string  `json:"sign"`
+			UseGrouping bool    `json:"use_grouping"`
+			Output      *string `json:"output"`
+		} `json:"format_money_options"`
+	} `json:"money"`
 }
 
 func loadFixtures(t *testing.T) fixtures {
@@ -723,6 +763,83 @@ func TestConformanceFixtures(t *testing.T) {
 		formatted, ok := FormatCurrency(item.Amount, item.Code, item.Locale)
 		if !ok || formatted != item.Output {
 			t.Fatal("format_currency mismatch")
+		}
+	}
+	for _, item := range fixtures.Money.MoneySymbol {
+		symbol, ok := MoneySymbol(item.Currency)
+		if item.Output == nil {
+			if ok {
+				t.Fatal("money_symbol expected failure")
+			}
+			continue
+		}
+		if !ok || symbol != *item.Output {
+			t.Fatal("money_symbol mismatch")
+		}
+	}
+	for _, item := range fixtures.Money.FormatMoney {
+		var formatted string
+		var ok bool
+		if item.Value == nil {
+			ok = false
+		} else {
+			formatted, ok = FormatMoney(*item.Value, item.Currency, item.Locale, item.Mode)
+		}
+		if item.Output == nil {
+			if ok {
+				t.Fatal("format_money expected failure")
+			}
+			continue
+		}
+		if !ok || formatted != *item.Output {
+			t.Fatal("format_money mismatch")
+		}
+	}
+	for _, item := range fixtures.Money.FormatMoneyDigits {
+		formatted, ok := FormatMoneyDigits(
+			item.Value, item.Currency, item.Locale, item.Mode, item.MinFraction, item.MaxFraction,
+		)
+		if item.Output == nil {
+			if ok {
+				t.Fatal("format_money_digits expected failure")
+			}
+			continue
+		}
+		if !ok || formatted != *item.Output {
+			t.Fatal("format_money_digits mismatch")
+		}
+	}
+	for _, item := range fixtures.Money.FormatMoneyMinorUnits {
+		var formatted string
+		var ok bool
+		if item.Minor == nil || math.Trunc(*item.Minor) != *item.Minor {
+			ok = false
+		} else {
+			formatted, ok = FormatMoneyMinorUnits(int64(*item.Minor), item.Currency, item.Locale, item.Mode)
+		}
+		if item.Output == nil {
+			if ok {
+				t.Fatal("format_money_minor_units expected failure")
+			}
+			continue
+		}
+		if !ok || formatted != *item.Output {
+			t.Fatal("format_money_minor_units mismatch")
+		}
+	}
+	for _, item := range fixtures.Money.FormatMoneyOptions {
+		formatted, ok := FormatMoneyOptions(
+			item.Value, item.Currency, item.Locale, item.Mode,
+			item.MinFraction, item.MaxFraction, item.Sign, item.UseGrouping,
+		)
+		if item.Output == nil {
+			if ok {
+				t.Fatal("format_money_options expected failure")
+			}
+			continue
+		}
+		if !ok || formatted != *item.Output {
+			t.Fatal("format_money_options mismatch")
 		}
 	}
 

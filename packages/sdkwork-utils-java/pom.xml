@@ -6,7 +6,7 @@
 
     <groupId>com.sdkwork</groupId>
     <artifactId>sdkwork-utils-java</artifactId>
-    <version>0.10.0</version>
+    <version>0.11.0</version>
     <name>sdkwork-utils-java</name>
     <description>SDKWork cross-language utility library for Java</description>
 

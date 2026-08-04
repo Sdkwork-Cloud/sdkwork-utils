@@ -43,6 +43,13 @@ import {
 } from "../string.js";
 import { formatBytes } from "../bytes.js";
 import {
+  formatMoney,
+  formatMoneyDigits,
+  formatMoneyMinorUnits,
+  formatMoneyOptions,
+  moneySymbol,
+} from "../money.js";
+import {
   addDays,
   addHours,
   addMinutes,
@@ -513,5 +520,49 @@ test("conformance fixtures", () => {
 
   for (const item of fixtures.bytes.format_bytes) {
     assert.equal(formatBytes(item.value, item.decimals), item.output);
+  }
+
+  for (const item of fixtures.money.money_symbol) {
+    assert.equal(moneySymbol(item.currency), item.output);
+  }
+  for (const item of fixtures.money.format_money) {
+    assert.equal(
+      formatMoney(item.value as number, item.currency, item.locale, item.mode),
+      item.output,
+    );
+  }
+  for (const item of fixtures.money.format_money_digits) {
+    assert.equal(
+      formatMoneyDigits(
+        item.value,
+        item.currency,
+        item.locale,
+        item.mode,
+        item.min_fraction,
+        item.max_fraction,
+      ),
+      item.output,
+    );
+  }
+  for (const item of fixtures.money.format_money_minor_units) {
+    assert.equal(
+      formatMoneyMinorUnits(item.minor, item.currency, item.locale, item.mode),
+      item.output,
+    );
+  }
+  for (const item of fixtures.money.format_money_options) {
+    assert.equal(
+      formatMoneyOptions(
+        item.value,
+        item.currency,
+        item.locale,
+        item.mode,
+        item.min_fraction,
+        item.max_fraction,
+        item.sign,
+        item.use_grouping,
+      ),
+      item.output,
+    );
   }
 });

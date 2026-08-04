@@ -375,6 +375,81 @@ public class ConformanceTests
             Assert.Equal(item.GetProperty("output").GetString(), CurrencyUtils.FormatCurrency(item.GetProperty("amount").GetDouble(), item.GetProperty("code").GetString()!, item.GetProperty("locale").GetString()!));
         }
 
+        foreach (var item in root.GetProperty("money").GetProperty("money_symbol").EnumerateArray())
+        {
+            string? expected = item.GetProperty("output").ValueKind == JsonValueKind.Null
+                ? null
+                : item.GetProperty("output").GetString();
+            Assert.Equal(expected, MoneyUtils.MoneySymbol(item.GetProperty("currency").GetString()!));
+        }
+        foreach (var item in root.GetProperty("money").GetProperty("format_money").EnumerateArray())
+        {
+            string? actual = item.GetProperty("value").ValueKind == JsonValueKind.Null
+                ? null
+                : MoneyUtils.FormatMoney(
+                    item.GetProperty("value").GetDouble(),
+                    item.GetProperty("currency").GetString()!,
+                    item.GetProperty("locale").GetString()!,
+                    item.GetProperty("mode").GetString()!);
+            string? expected = item.GetProperty("output").ValueKind == JsonValueKind.Null
+                ? null
+                : item.GetProperty("output").GetString();
+            Assert.Equal(expected, actual);
+        }
+        foreach (var item in root.GetProperty("money").GetProperty("format_money_digits").EnumerateArray())
+        {
+            var actual = MoneyUtils.FormatMoneyDigits(
+                item.GetProperty("value").GetDouble(),
+                item.GetProperty("currency").GetString()!,
+                item.GetProperty("locale").GetString()!,
+                item.GetProperty("mode").GetString()!,
+                item.GetProperty("min_fraction").GetInt32(),
+                item.GetProperty("max_fraction").GetInt32());
+            string? expected = item.GetProperty("output").ValueKind == JsonValueKind.Null
+                ? null
+                : item.GetProperty("output").GetString();
+            Assert.Equal(expected, actual);
+        }
+        foreach (var item in root.GetProperty("money").GetProperty("format_money_minor_units").EnumerateArray())
+        {
+            string? actual;
+            if (item.GetProperty("minor").ValueKind == JsonValueKind.Null)
+            {
+                actual = null;
+            }
+            else
+            {
+                var minor = item.GetProperty("minor").GetDouble();
+                actual = minor != Math.Floor(minor)
+                    ? null
+                    : MoneyUtils.FormatMoneyMinorUnits(
+                        item.GetProperty("minor").GetInt64(),
+                        item.GetProperty("currency").GetString()!,
+                        item.GetProperty("locale").GetString()!,
+                        item.GetProperty("mode").GetString()!);
+            }
+            string? expected = item.GetProperty("output").ValueKind == JsonValueKind.Null
+                ? null
+                : item.GetProperty("output").GetString();
+            Assert.Equal(expected, actual);
+        }
+        foreach (var item in root.GetProperty("money").GetProperty("format_money_options").EnumerateArray())
+        {
+            var actual = MoneyUtils.FormatMoneyOptions(
+                item.GetProperty("value").GetDouble(),
+                item.GetProperty("currency").GetString()!,
+                item.GetProperty("locale").GetString()!,
+                item.GetProperty("mode").GetString()!,
+                item.GetProperty("min_fraction").GetInt32(),
+                item.GetProperty("max_fraction").GetInt32(),
+                item.GetProperty("sign").GetString()!,
+                item.GetProperty("use_grouping").GetBoolean());
+            string? expected = item.GetProperty("output").ValueKind == JsonValueKind.Null
+                ? null
+                : item.GetProperty("output").GetString();
+            Assert.Equal(expected, actual);
+        }
+
         foreach (var item in root.GetProperty("i18n").GetProperty("parse_number_locale").EnumerateArray())
         {
             double? expected = item.GetProperty("output").ValueKind == JsonValueKind.Null

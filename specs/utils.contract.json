@@ -1,6 +1,6 @@
 {
   "name": "sdkwork-utils",
-  "version": "0.9.0",
+  "version": "0.11.0",
   "description": "Cross-language utility API contract. All language packages must implement these modules and operations with equivalent behavior.",
   "semantics": {
     "blank": "null, undefined, None, or whitespace-only strings are blank.",
@@ -10,6 +10,7 @@
     "failure": "Parse/decode failures return null/None/optional empty; they do not throw unless language idioms require explicit Result types.",
     "naming": "Contract operations use snake_case. Each language package maps to idiomatic export names documented in specs/naming.aliases.json.",
     "currency": "ISO 4217 codes are 3 uppercase ASCII letters. Minor units use specs/currency.metadata.json exponents. format_currency uses locale separators from i18n rules and symbol placement from currency metadata.",
+    "money": "Money display aligns with industry Intl.NumberFormat conventions. Modes are symbol, narrow_symbol, code, name, decimal, accounting, compact; narrow_symbol uses the currency metadata symbol (identical to symbol in the supported table). Symbol placement: en-US/zh-CN/ja-JP/ko-KR prefix without space; de-DE/fr-FR/it-IT/es-ES/ru-RU suffix with a single space. Separators: en/zh/ja/ko use decimal dot and comma grouping; de/it/es use decimal comma and dot grouping; fr/ru use decimal comma and space grouping. Accounting wraps negative amounts in parentheses for prefix locales and uses a leading minus for suffix locales. Compact uses locale short units (en K/M/B/T, de Tsd./Mio./Mrd./Bio., fr k/M/Md/B, it k/M/Mrd./Bio., es k/M/B/T, ru tys./mln/mlrd/trln, zh/ja 万/亿/兆, ko 만/억/조) with at most one fraction digit; values below the smallest unit render as plain numbers. Name mode uses localized currency names with a space separator except zh/ja/ko. Rounding is half-up on the shortest decimal representation of the value. Unknown currency codes, invalid modes, invalid sign values, and invalid fraction digit combinations return null/none. format_money_minor_units converts integer minor units to major units using the currency exponent for fraction digits.",
     "bloom": "SHA-256 Kirsch-Mitzenmacher hashing: h1/h2 from first 8 digest bytes (big-endian u32), positions (h1 + i*h2) mod m. m = max(64, ceil(-n*ln(p)/ln(2)^2)), k = max(1, round(m/n*ln(2))).",
     "template": "Replace {identifier} placeholders when the key exists in the values map. Identifiers match [A-Za-z_][A-Za-z0-9_]*. Unknown placeholders are left unchanged. No expression evaluation.",
     "bytes": "Byte counts use binary (1024) scaling with units B, KB, MB, GB, TB, PB. Negative inputs are treated as 0. Whole-byte values under 1024 render as integer B without decimals.",
@@ -166,6 +167,13 @@
     },
     "bytes": {
       "format_bytes": "Format a non-negative byte count using 1024-based units and fixed decimal places (default 1) for KB and above."
+    },
+    "money": {
+      "money_symbol": "Return the narrow display symbol for a supported ISO 4217 code, or null for unknown codes.",
+      "format_money": "Format a major-unit amount with locale separators, currency display mode, and default fraction digits (2 for symbol/code/name/accounting, 0-2 for decimal, 1 for compact).",
+      "format_money_digits": "Format a major-unit amount with explicit minimum and maximum fraction digits (0-18, min <= max).",
+      "format_money_minor_units": "Format an integer minor-unit amount using the currency exponent for fraction digits; compact mode is not supported.",
+      "format_money_options": "Format a major-unit amount with explicit fraction digits, sign display (auto/always/never/except_zero), and grouping control."
     }
   }
 }

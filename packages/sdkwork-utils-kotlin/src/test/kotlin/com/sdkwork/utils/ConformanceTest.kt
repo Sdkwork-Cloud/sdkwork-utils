@@ -611,6 +611,66 @@ class ConformanceTest {
             assertEquals(item.getString("output"), CurrencyUtils.formatCurrency(item.getDouble("amount"), item.getString("code"), item.getString("locale")))
         }
 
+        val moneyCases = fixtures.getJSONObject("money")
+        for (index in 0 until moneyCases.getJSONArray("money_symbol").length()) {
+            val item = moneyCases.getJSONArray("money_symbol").getJSONObject(index)
+            val expected = if (item.isNull("output")) null else item.getString("output")
+            assertEquals(expected, MoneyUtils.moneySymbol(item.getString("currency")))
+        }
+        for (index in 0 until moneyCases.getJSONArray("format_money").length()) {
+            val item = moneyCases.getJSONArray("format_money").getJSONObject(index)
+            val actual = if (item.isNull("value")) {
+                null
+            } else {
+                MoneyUtils.formatMoney(item.getDouble("value"), item.getString("currency"), item.getString("locale"), item.getString("mode"))
+            }
+            val expected = if (item.isNull("output")) null else item.getString("output")
+            assertEquals(expected, actual)
+        }
+        for (index in 0 until moneyCases.getJSONArray("format_money_digits").length()) {
+            val item = moneyCases.getJSONArray("format_money_digits").getJSONObject(index)
+            val actual = MoneyUtils.formatMoneyDigits(
+                item.getDouble("value"),
+                item.getString("currency"),
+                item.getString("locale"),
+                item.getString("mode"),
+                item.getInt("min_fraction"),
+                item.getInt("max_fraction"),
+            )
+            val expected = if (item.isNull("output")) null else item.getString("output")
+            assertEquals(expected, actual)
+        }
+        for (index in 0 until moneyCases.getJSONArray("format_money_minor_units").length()) {
+            val item = moneyCases.getJSONArray("format_money_minor_units").getJSONObject(index)
+            val actual = if (item.isNull("minor")) {
+                null
+            } else {
+                val minor = item.getDouble("minor")
+                if (minor != Math.floor(minor)) {
+                    null
+                } else {
+                    MoneyUtils.formatMoneyMinorUnits(item.getLong("minor"), item.getString("currency"), item.getString("locale"), item.getString("mode"))
+                }
+            }
+            val expected = if (item.isNull("output")) null else item.getString("output")
+            assertEquals(expected, actual)
+        }
+        for (index in 0 until moneyCases.getJSONArray("format_money_options").length()) {
+            val item = moneyCases.getJSONArray("format_money_options").getJSONObject(index)
+            val actual = MoneyUtils.formatMoneyOptions(
+                item.getDouble("value"),
+                item.getString("currency"),
+                item.getString("locale"),
+                item.getString("mode"),
+                item.getInt("min_fraction"),
+                item.getInt("max_fraction"),
+                item.getString("sign"),
+                item.getBoolean("use_grouping"),
+            )
+            val expected = if (item.isNull("output")) null else item.getString("output")
+            assertEquals(expected, actual)
+        }
+
         val bloomCases = fixtures.getJSONObject("bloom")
         for (index in 0 until bloomCases.getJSONArray("create").length()) {
             val item = bloomCases.getJSONArray("create").getJSONObject(index)

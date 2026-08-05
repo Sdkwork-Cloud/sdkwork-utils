@@ -255,7 +255,8 @@ mod tests {
 
     #[test]
     fn cidr_entries_match_member_addresses() {
-        let config = TrustedProxyConfig::from_cidrs(["10.0.0.0/8", "192.168.1.0/24", "2001:db8::/32"]);
+        let config =
+            TrustedProxyConfig::from_cidrs(["10.0.0.0/8", "192.168.1.0/24", "2001:db8::/32"]);
         assert!(config.is_trusted(&"10.1.2.3".parse().expect("in cidr")));
         assert!(config.is_trusted(&"192.168.1.200".parse().expect("in cidr")));
         assert!(config.is_trusted(&"2001:db8:1::5".parse().expect("in cidr")));

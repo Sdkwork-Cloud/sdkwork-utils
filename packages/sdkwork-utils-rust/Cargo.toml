@@ -20,7 +20,13 @@ urlencoding = "2"
 aes-gcm = "0.10"
 # 密钥派生：HKDF-SHA256（替代裸 SHA-256 摘要做密钥）
 hkdf = "0.12"
+# 分布式限流后端（可选）：Redis 原子令牌桶
+redis = { version = "0.27", default-features = false, features = ["tokio-comp", "connection-manager", "script"], optional = true }
 
 [dev-dependencies]
 pretty_assertions = "1"
 serde_urlencoded = "0.7"
+
+[features]
+default = []
+redis = ["dep:redis"]

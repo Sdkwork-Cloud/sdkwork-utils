@@ -19,6 +19,7 @@ pub mod object;
 pub mod optional;
 pub mod path;
 pub mod platform;
+pub mod rate_limit;
 pub mod result;
 pub mod serde_int64;
 pub mod serde_uint64;

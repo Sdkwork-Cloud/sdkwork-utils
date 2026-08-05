@@ -57,8 +57,18 @@ test("buildSharedGatewayToolSnippets emits canonical gateway tool config", () =>
     /GOOGLE_GEMINI_BASE_URL="https:\/\/console\.example\.test\/google\/v1beta"/,
   );
   assert.match(snippets.opencode, /"npm": "@ai-sdk\/openai-compatible"/);
-  assert.match(snippets.openclaw, /base_url: https:\/\/console\.example\.test\/v1/);
-  assert.match(snippets["hermes-agent"], /baseUrl: "https:\/\/console\.example\.test\/v1"/);
-  assert.match(snippets["hermes-agent"], /protocol: openai/);
+  assert.match(
+    snippets.openclaw,
+    /"baseUrl": "https:\/\/console\.example\.test\/v1"/,
+  );
+  assert.match(snippets.openclaw, /"api": "openai-completions"/);
+  assert.match(
+    snippets["hermes-agent"],
+    /base_url: https:\/\/console\.example\.test\/v1/,
+  );
+  assert.match(snippets["hermes-agent"], /api_mode: openai_chat/);
+  assert.doesNotMatch(snippets["hermes-agent"], /protocol: openai/);
   assert.doesNotMatch(snippets["hermes-agent"], /OPENAI_API_KEY/);
+  assert.match(snippets["mimo-code"], /mimocode\.jsonc/);
+  assert.match(snippets.rig, /openai::Client::builder\(\)/);
 });

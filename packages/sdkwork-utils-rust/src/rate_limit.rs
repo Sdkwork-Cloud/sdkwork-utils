@@ -100,6 +100,7 @@ pub struct RedisTokenBucketClient {
 /// Default key TTL for rate-limit buckets (seconds).
 pub const REDIS_BUCKET_KEY_TTL_SECS: u64 = 600;
 
+#[cfg(feature = "redis")]
 const ACQUIRE_SCRIPT: &str = r#"
 local tokens_key = KEYS[1]
 local now = tonumber(ARGV[1])

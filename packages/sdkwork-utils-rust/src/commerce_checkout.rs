@@ -1,8 +1,14 @@
 //! Shared commerce checkout/cashier URL helpers for order and payment capabilities.
 
-const DEFAULT_CASHIER_BASE_URL: &str = "https://im.sdkwork.com/cashier";
+/// H5 app origin hosting the order cashier route.
+///
+/// `SDKWORK_COMMERCE_CASHIER_BASE_URL` may override it per deployment; it
+/// must carry only the origin (no trailing cashier path), because
+/// `build_commerce_cashier_url` appends the canonical H5 cashier route.
+const DEFAULT_CASHIER_BASE_URL: &str = "https://im.sdkwork.com";
 
-/// Resolve cashier base URL from `SDKWORK_COMMERCE_CASHIER_BASE_URL` or the platform default.
+/// Resolve the H5 cashier base origin from `SDKWORK_COMMERCE_CASHIER_BASE_URL`
+/// or the platform default.
 pub fn commerce_cashier_base_url() -> String {
     std::env::var("SDKWORK_COMMERCE_CASHIER_BASE_URL")
         .ok()
@@ -26,13 +32,19 @@ pub fn commerce_cashier_scene(order_subject: Option<&str>) -> &'static str {
     }
 }
 
-/// Build a cashier deep-link for owner-order payment (`orderId` uses business order number/sn).
+/// Build a cashier deep-link for owner-order payment.
+///
+/// The URL targets the `sdkwork-im-h5` unified cashier route
+/// (`/cashier/{order_id}`) so the QR content matches the mounted H5 cashier
+/// exactly (history-mode routing, no hash fragment). `orderId` carries the
+/// order primary key, which is the key the H5 cashier page uses with
+/// `orders.retrieve(orderId)`.
 pub fn build_commerce_cashier_url(scene: &str, order_id: &str, out_trade_no: &str) -> String {
     format!(
-        "{}?scene={}&orderId={}&outTradeNo={}",
+        "{}/cashier/{}?scene={}&outTradeNo={}",
         commerce_cashier_base_url(),
-        scene,
         order_id,
+        scene,
         out_trade_no
     )
 }
@@ -59,11 +71,12 @@ mod tests {
     }
 
     #[test]
-    fn build_cashier_url_includes_scene_and_ids() {
+    fn build_cashier_url_uses_h5_cashier_route() {
         let url = build_commerce_cashier_url("recharge", "ORD-1", "OT-1");
+        assert!(url.contains("/cashier/ORD-1"));
         assert!(url.contains("scene=recharge"));
-        assert!(url.contains("orderId=ORD-1"));
         assert!(url.contains("outTradeNo=OT-1"));
+        assert!(!url.contains('#'));
     }
 
     #[test]

@@ -33,6 +33,12 @@ pub enum SdkWorkResultCode {
     RequestTimeout = 40801,
     Conflict = 40901,
     Gone = 41001,
+    /// A PSP (payment service provider) rejected the checkout/refund request
+    /// (e.g. WeChat `SIGN_ERROR`, Stripe `Invalid API Key`). Deliberately in
+    /// the 41xxx range — far from the 401xx authentication codes — so admin
+    /// surfaces never mistake a payment-gateway rejection for a session/login
+    /// problem.
+    PaymentGatewayRejected = 41101,
     PreconditionFailed = 41201,
     PayloadTooLarge = 41301,
     UnsupportedMediaType = 41501,
@@ -72,6 +78,7 @@ impl SdkWorkResultCode {
             Self::RequestTimeout => "REQUEST_TIMEOUT",
             Self::Conflict => "CONFLICT",
             Self::Gone => "GONE",
+            Self::PaymentGatewayRejected => "PAYMENT_GATEWAY_REJECTED",
             Self::PreconditionFailed => "PRECONDITION_FAILED",
             Self::PayloadTooLarge => "PAYLOAD_TOO_LARGE",
             Self::UnsupportedMediaType => "UNSUPPORTED_MEDIA_TYPE",
@@ -107,6 +114,7 @@ impl SdkWorkResultCode {
             Self::RequestTimeout => 408,
             Self::Conflict => 409,
             Self::Gone => 410,
+            Self::PaymentGatewayRejected => 400,
             Self::PreconditionFailed => 412,
             Self::PayloadTooLarge => 413,
             Self::UnsupportedMediaType => 415,
@@ -141,6 +149,7 @@ impl SdkWorkResultCode {
             Self::RequestTimeout => "Request timeout",
             Self::Conflict => "Conflict",
             Self::Gone => "Gone",
+            Self::PaymentGatewayRejected => "Payment gateway rejected the request",
             Self::PreconditionFailed => "Precondition failed",
             Self::PayloadTooLarge => "Payload too large",
             Self::UnsupportedMediaType => "Unsupported media type",

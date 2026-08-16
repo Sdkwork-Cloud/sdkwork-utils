@@ -1,4 +1,4 @@
-﻿export declare function unique<T>(items: T[]): T[];
+export declare function unique<T>(items: T[]): T[];
 export declare function chunk<T>(items: T[], size: number): T[][];
 export declare function groupBy<T, K extends PropertyKey>(items: T[], keyFn: (item: T) => K): Record<K, T[]>;
 export declare function flatten<T>(items: T[][]): T[];
@@ -9,3 +9,4 @@ export declare function sortBy<T>(items: T[], keyFn: (item: T) => string | numbe
 export declare function keyBy<T, K extends PropertyKey>(items: T[], keyFn: (item: T) => K): Record<K, T>;
 export declare function filter<T>(items: T[], predicate: (item: T) => boolean): T[];
 export declare function find<T>(items: T[], predicate: (item: T) => boolean): T | null;
+//# sourceMappingURL=collection.d.ts.map

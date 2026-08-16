@@ -1,4 +1,4 @@
-﻿export declare const DEFAULT_PATTERN = "iso8601";
+export declare const DEFAULT_PATTERN = "iso8601";
 export declare function now(): Date;
 export declare function formatDatetime(value: Date, pattern?: string): string;
 export declare function parseDatetime(value: string, pattern?: string): Date | null;
@@ -13,3 +13,4 @@ export declare function endOfDayUtc(value: Date): Date;
 export declare function toUnixMillis(value: Date): number;
 export declare function fromUnixMillis(value: number): Date | null;
 export declare function isSameInstant(first: Date, second: Date): boolean;
+//# sourceMappingURL=datetime.d.ts.map

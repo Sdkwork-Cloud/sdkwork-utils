@@ -1,4 +1,4 @@
-﻿export type ResultValue<T> = {
+export type ResultValue<T> = {
     ok: true;
     value: T;
 } | {
@@ -17,3 +17,4 @@ export declare function isErr<T>(result: ResultValue<T>): result is {
 };
 export declare function unwrapOr<T>(result: ResultValue<T>, defaultValue: T): T;
 export declare function map<T, U>(result: ResultValue<T>, mapper: (value: T) => U): ResultValue<U>;
+//# sourceMappingURL=result.d.ts.map

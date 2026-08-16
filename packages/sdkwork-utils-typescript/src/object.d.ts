@@ -1,4 +1,4 @@
-﻿export type JsonObject = Record<string, unknown>;
+export type JsonObject = Record<string, unknown>;
 export declare function pick(source: JsonObject, keys: string[]): JsonObject;
 export declare function omit(source: JsonObject, keys: string[]): JsonObject;
 export declare function getPath(source: unknown, path: string): unknown;
@@ -9,3 +9,4 @@ export declare function deepMerge(base: unknown, overlay: unknown): unknown;
 export declare function compactObject(source: JsonObject): JsonObject;
 export declare function keys(source: JsonObject): string[];
 export declare function values(source: JsonObject): unknown[];
+//# sourceMappingURL=object.d.ts.map

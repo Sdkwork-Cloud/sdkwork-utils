@@ -12,8 +12,8 @@ export function uuid(): string {
 export function randomString(length: number): string {
   const bytes = randomBytes(length);
   let result = "";
-  for (let index = 0; index < length; index += 1) {
-    result += ALPHANUMERIC[bytes[index] % ALPHANUMERIC.length];
+  for (const byte of bytes) {
+    result += ALPHANUMERIC.charAt(byte % ALPHANUMERIC.length);
   }
   return result;
 }

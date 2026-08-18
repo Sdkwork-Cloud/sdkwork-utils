@@ -57,6 +57,13 @@ test("object and crypto helpers", () => {
     hmacSha256("payload", "secret"),
     "b82fcb791acec57859b989b430a826488ce2e479fdf92326bd0a2e8375a42ba4",
   );
+  assert.equal(
+    hmacSha256(
+      "Test Using Larger Than Block-Size Key - Hash Key First",
+      new Uint8Array(131).fill(0xaa),
+    ),
+    "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54",
+  );
 });
 
 test("optional result and i18n helpers", () => {

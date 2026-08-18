@@ -5,23 +5,17 @@ export function toUtf8(value: string): Uint8Array {
 }
 
 export function readUInt32BE(bytes: Uint8Array, offset: number): number {
-  return (
-    ((bytes[offset] << 24) |
-      (bytes[offset + 1] << 16) |
-      (bytes[offset + 2] << 8) |
-      bytes[offset + 3]) >>>
-    0
-  );
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return view.getUint32(offset, false);
 }
 
 const HEX = "0123456789abcdef";
 
 export function hexEncode(bytes: Uint8Array): string {
   let result = "";
-  for (let index = 0; index < bytes.length; index += 1) {
-    const byte = bytes[index];
-    result += HEX[byte >> 4];
-    result += HEX[byte & 0x0f];
+  for (const byte of bytes) {
+    result += HEX.charAt(byte >> 4);
+    result += HEX.charAt(byte & 0x0f);
   }
   return result;
 }
@@ -42,8 +36,8 @@ export function hexDecode(value: string): Uint8Array | null {
 
 function bytesToBinary(bytes: Uint8Array): string {
   let binary = "";
-  for (let index = 0; index < bytes.length; index += 1) {
-    binary += String.fromCharCode(bytes[index]);
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
   }
   return binary;
 }

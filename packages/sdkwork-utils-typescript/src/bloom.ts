@@ -39,7 +39,11 @@ export function add(filter: BloomFilter, value: string): void {
   for (const index of hashPositions(toUtf8(value), filter.bitCount, filter.hashCount)) {
     const byteIndex = Math.floor(index / 8);
     const bitIndex = index % 8;
-    filter.bits[byteIndex] = bloomByteAt(filter, byteIndex) | (1 << bitIndex);
+    const byte = filter.bits[byteIndex];
+    if (byte === undefined) {
+      continue;
+    }
+    filter.bits[byteIndex] = byte | (1 << bitIndex);
   }
 }
 
@@ -47,16 +51,12 @@ export function mightContain(filter: BloomFilter, value: string): boolean {
   return hashPositions(toUtf8(value), filter.bitCount, filter.hashCount).every((index) => {
     const byteIndex = Math.floor(index / 8);
     const bitIndex = index % 8;
-    return (bloomByteAt(filter, byteIndex) & (1 << bitIndex)) !== 0;
+    const byte = filter.bits[byteIndex];
+    if (byte === undefined) {
+      return false;
+    }
+    return (byte & (1 << bitIndex)) !== 0;
   });
-}
-
-function bloomByteAt(filter: BloomFilter, index: number): number {
-  const byte = filter.bits[index];
-  if (byte === undefined) {
-    throw new RangeError("Bloom filter bits are shorter than bitCount requires.");
-  }
-  return byte;
 }
 
 function hashPositions(value: Uint8Array, bitCount: number, hashCount: number): number[] {

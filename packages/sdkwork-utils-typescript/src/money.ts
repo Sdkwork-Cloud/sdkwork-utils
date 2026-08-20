@@ -65,21 +65,19 @@ interface LocaleRules {
   compact: readonly CompactUnit[];
 }
 
-const DEFAULT_LOCALE_RULES: LocaleRules = {
-  prefix: true,
-  decimal: ".",
-  grouping: ",",
-  nameSpace: true,
-  compact: [
-    { exponent: 12, unit: "T" },
-    { exponent: 9, unit: "B" },
-    { exponent: 6, unit: "M" },
-    { exponent: 3, unit: "K" },
-  ],
-};
-
 const LOCALE_RULES: Record<string, LocaleRules> = {
-  "en-us": DEFAULT_LOCALE_RULES,
+  "en-us": {
+    prefix: true,
+    decimal: ".",
+    grouping: ",",
+    nameSpace: true,
+    compact: [
+      { exponent: 12, unit: "T" },
+      { exponent: 9, unit: "B" },
+      { exponent: 6, unit: "M" },
+      { exponent: 3, unit: "K" },
+    ],
+  },
   "zh-cn": {
     prefix: true,
     decimal: ".",
@@ -175,25 +173,23 @@ const LOCALE_RULES: Record<string, LocaleRules> = {
   },
 };
 
-const DEFAULT_CURRENCY_NAMES: Record<string, string> = {
-  USD: "US dollars",
-  EUR: "euros",
-  GBP: "British pounds",
-  CNY: "Chinese yuan",
-  JPY: "Japanese yen",
-  KRW: "South Korean won",
-  HKD: "Hong Kong dollars",
-  TWD: "New Taiwan dollars",
-  CHF: "Swiss francs",
-  CAD: "Canadian dollars",
-  AUD: "Australian dollars",
-  INR: "Indian rupees",
-  BHD: "Bahraini dinars",
-  KWD: "Kuwaiti dinars",
-};
-
 const CURRENCY_NAMES: Record<string, Record<string, string>> = {
-  "en-us": DEFAULT_CURRENCY_NAMES,
+  "en-us": {
+    USD: "US dollars",
+    EUR: "euros",
+    GBP: "British pounds",
+    CNY: "Chinese yuan",
+    JPY: "Japanese yen",
+    KRW: "South Korean won",
+    HKD: "Hong Kong dollars",
+    TWD: "New Taiwan dollars",
+    CHF: "Swiss francs",
+    CAD: "Canadian dollars",
+    AUD: "Australian dollars",
+    INR: "Indian rupees",
+    BHD: "Bahraini dinars",
+    KWD: "Kuwaiti dinars",
+  },
   "zh-cn": {
     USD: "\u7F8E\u5143",
     EUR: "\u6B27\u5143",
@@ -324,6 +320,9 @@ const CURRENCY_NAMES: Record<string, Record<string, string>> = {
   },
 };
 
+const DEFAULT_LOCALE_RULES = LOCALE_RULES["en-us"]!;
+const DEFAULT_CURRENCY_NAMES = CURRENCY_NAMES["en-us"]!;
+
 function lookupCurrency(currency: string | null | undefined): string | null {
   if (typeof currency !== "string") {
     return null;
@@ -344,10 +343,10 @@ function resolveLocaleRules(locale: string | null | undefined): LocaleRules {
   if (exact) {
     return exact;
   }
-  const [language = ""] = normalized.split("-");
-  for (const [key, rules] of Object.entries(LOCALE_RULES)) {
+  const language = normalized.split("-")[0] ?? normalized;
+  for (const key of Object.keys(LOCALE_RULES)) {
     if (key.split("-")[0] === language) {
-      return rules;
+      return LOCALE_RULES[key] ?? DEFAULT_LOCALE_RULES;
     }
   }
   return DEFAULT_LOCALE_RULES;
@@ -362,10 +361,10 @@ function resolveNames(locale: string | null | undefined): Record<string, string>
   if (exact) {
     return exact;
   }
-  const [language = ""] = normalized.split("-");
-  for (const [key, names] of Object.entries(CURRENCY_NAMES)) {
+  const language = normalized.split("-")[0] ?? normalized;
+  for (const key of Object.keys(CURRENCY_NAMES)) {
     if (key.split("-")[0] === language) {
-      return names;
+      return CURRENCY_NAMES[key] ?? DEFAULT_CURRENCY_NAMES;
     }
   }
   return DEFAULT_CURRENCY_NAMES;
@@ -378,7 +377,8 @@ function expandExponent(value: string): string {
   }
   const mantissa = value.slice(0, exponentIndex);
   const exponent = Number.parseInt(value.slice(exponentIndex + 1), 10);
-  const [intPart = "", fracPart = ""] = mantissa.split(".");
+  const [intPartRaw, fracPart = ""] = mantissa.split(".");
+  const intPart = intPartRaw ?? "";
   const digits = intPart + fracPart;
   const pointIndex = intPart.length + exponent;
   if (pointIndex <= 0) {
@@ -419,9 +419,14 @@ function parseValue(value: MoneyValue | null): ParsedValue | null {
   if (!match) {
     return null;
   }
-  const [, sign = "", integer = "", fracPart = ""] = match;
+  const sign = match[1];
+  const intPartRaw = match[2];
+  if (sign === undefined || intPartRaw === undefined) {
+    return null;
+  }
   const negative = sign === "-";
-  const intPart = integer.replace(/^0+(?=\d)/, "");
+  const intPart = intPartRaw.replace(/^0+(?=\d)/, "");
+  const fracPart = match[3] ?? "";
   const isZero = /^0*$/.test(intPart + fracPart);
   const absDecimal = `${intPart}${fracPart ? `.${fracPart}` : ""}`;
   return { negative, isZero, absDecimal };
@@ -438,7 +443,8 @@ function roundDecimal(
     return { intPart, fracPart: fracPart.padEnd(maxFraction, "0") };
   }
   const keep = fracPart.slice(0, maxFraction);
-  if (fracPart.charAt(maxFraction) >= "5") {
+  const roundDigit = fracPart[maxFraction];
+  if (roundDigit !== undefined && roundDigit >= "5") {
     return incrementDecimal(intPart, keep);
   }
   return { intPart, fracPart: keep };
@@ -455,11 +461,7 @@ function incrementDecimal(
     index -= 1;
   }
   if (index >= 0) {
-    const digit = digits[index];
-    if (digit === undefined) {
-      throw new RangeError("Decimal increment index is out of range.");
-    }
-    digits[index] = String(Number(digit) + 1);
+    digits[index] = String(Number(digits[index]) + 1);
   } else {
     digits.unshift("1");
   }
@@ -504,23 +506,29 @@ function formatCompactBody(parsed: ParsedValue, rules: LocaleRules): string {
   if (parsed.isZero) {
     return "0";
   }
-  const [integerPart = ""] = parsed.absDecimal.split(".");
-  const intLength = integerPart.length;
+  const intPart = parsed.absDecimal.split(".")[0] ?? parsed.absDecimal;
+  const intLength = intPart.length;
   let unitIndex = -1;
-  let unit: CompactUnit | undefined;
-  for (const [index, candidate] of rules.compact.entries()) {
-    if (intLength > candidate.exponent) {
+  for (let index = 0; index < rules.compact.length; index += 1) {
+    const compactUnit = rules.compact[index];
+    if (compactUnit !== undefined && intLength > compactUnit.exponent) {
       unitIndex = index;
-      unit = candidate;
       break;
     }
   }
-  if (unitIndex < 0 || unit === undefined) {
+  if (unitIndex < 0) {
     const rounded = roundDecimal(parsed.absDecimal, 1);
     const trimmed = trimFraction(rounded.fracPart, 0);
     return trimmed.length > 0 ? `${rounded.intPart}.${trimmed}` : rounded.intPart;
   }
-  let scaled = roundDecimal(shiftDecimalPoint(parsed.absDecimal, unit.exponent), 1);
+  const initialUnit = rules.compact[unitIndex];
+  if (initialUnit === undefined) {
+    const rounded = roundDecimal(parsed.absDecimal, 1);
+    const trimmed = trimFraction(rounded.fracPart, 0);
+    return trimmed.length > 0 ? `${rounded.intPart}.${trimmed}` : rounded.intPart;
+  }
+  let scaled = roundDecimal(shiftDecimalPoint(parsed.absDecimal, initialUnit.exponent), 1);
+  let unit = initialUnit;
   if (scaled.intPart.length > 1 && unitIndex + 1 < rules.compact.length) {
     const nextUnit = rules.compact[unitIndex + 1];
     if (nextUnit !== undefined) {
@@ -607,9 +615,6 @@ function formatMoneyInternal(args: FormatArguments): string | null {
   const negative = parsed.negative;
   const isZero = parsed.isZero;
   const symbol = CURRENCY_SYMBOLS[code];
-  if (symbol === undefined) {
-    return null;
-  }
 
   if (args.mode === "compact") {
     const body = formatCompactBody(parsed, rules);
@@ -643,7 +648,7 @@ function formatMoneyInternal(args: FormatArguments): string | null {
 
   if (args.mode === "name") {
     const names = resolveNames(args.locale);
-    const name = names[code] ?? names.USD ?? code;
+    const name = names[code] ?? names.USD ?? DEFAULT_CURRENCY_NAMES.USD;
     const separator = rules.nameSpace ? " " : "";
     return `${signText}${body}${separator}${name}`;
   }
@@ -653,7 +658,7 @@ function formatMoneyInternal(args: FormatArguments): string | null {
 
 export function moneySymbol(currency: string): string | null {
   const code = lookupCurrency(currency);
-  return code ? CURRENCY_SYMBOLS[code] ?? null : null;
+  return code ? (CURRENCY_SYMBOLS[code] ?? null) : null;
 }
 
 export function formatMoney(

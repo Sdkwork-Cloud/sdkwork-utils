@@ -11,7 +11,8 @@ function separators(locale: string): { decimal: string; grouping: string } {
 export function formatNumberLocale(value: number, locale: string, decimals = 0): string {
   const rounded = round(Math.abs(value), decimals);
   const { decimal, grouping } = separators(locale);
-  const [integerPart = "0", fractionPart = ""] = rounded.toFixed(decimals).split(".");
+  const [integerPartRaw, fractionPart = ""] = rounded.toFixed(decimals).split(".");
+  const integerPart = integerPartRaw ?? "0";
   const grouped = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, grouping);
   const formatted =
     decimals > 0 ? `${grouped}${decimal}${fractionPart.padEnd(decimals, "0")}` : grouped;

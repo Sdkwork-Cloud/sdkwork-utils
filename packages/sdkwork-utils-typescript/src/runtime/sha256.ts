@@ -17,43 +17,44 @@ function rotr(value: number, shift: number): number {
   return (value >>> shift) | (value << (32 - shift));
 }
 
-function uint32At(values: Uint32Array, index: number): number {
-  const value = values[index];
-  if (value === undefined) {
-    throw new RangeError(`Uint32 index ${index} is out of range.`);
-  }
-  return value;
+function readBlockU32(block: Uint8Array, byteOffset: number): number {
+  return (
+    (block[byteOffset]! << 24) |
+    (block[byteOffset + 1]! << 16) |
+    (block[byteOffset + 2]! << 8) |
+    block[byteOffset + 3]!
+  );
 }
 
 function sha256Block(state: Uint32Array, block: Uint8Array, offset: number): void {
   const words = new Uint32Array(64);
-  const view = new DataView(block.buffer, block.byteOffset, block.byteLength);
   for (let index = 0; index < 16; index += 1) {
-    const start = offset + index * 4;
-    words[index] = view.getUint32(start, false);
+    words[index] = readBlockU32(block, offset + index * 4);
   }
 
   for (let index = 16; index < 64; index += 1) {
-    const word15 = uint32At(words, index - 15);
-    const word2 = uint32At(words, index - 2);
-    const s0 = rotr(word15, 7) ^ rotr(word15, 18) ^ (word15 >>> 3);
-    const s1 = rotr(word2, 17) ^ rotr(word2, 19) ^ (word2 >>> 10);
-    words[index] = (uint32At(words, index - 16) + s0 + uint32At(words, index - 7) + s1) >>> 0;
+    const wordMinus15 = words[index - 15]!;
+    const wordMinus2 = words[index - 2]!;
+    const wordMinus16 = words[index - 16]!;
+    const wordMinus7 = words[index - 7]!;
+    const s0 = rotr(wordMinus15, 7) ^ rotr(wordMinus15, 18) ^ (wordMinus15 >>> 3);
+    const s1 = rotr(wordMinus2, 17) ^ rotr(wordMinus2, 19) ^ (wordMinus2 >>> 10);
+    words[index] = (wordMinus16 + s0 + wordMinus7 + s1) >>> 0;
   }
 
-  let a = uint32At(state, 0);
-  let b = uint32At(state, 1);
-  let c = uint32At(state, 2);
-  let d = uint32At(state, 3);
-  let e = uint32At(state, 4);
-  let f = uint32At(state, 5);
-  let g = uint32At(state, 6);
-  let h = uint32At(state, 7);
+  let a = state[0]!;
+  let b = state[1]!;
+  let c = state[2]!;
+  let d = state[3]!;
+  let e = state[4]!;
+  let f = state[5]!;
+  let g = state[6]!;
+  let h = state[7]!;
 
   for (let index = 0; index < 64; index += 1) {
     const s1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
     const ch = (e & f) ^ (~e & g);
-    const temp1 = (h + s1 + ch + uint32At(K, index) + uint32At(words, index)) >>> 0;
+    const temp1 = (h + s1 + ch + K[index]! + words[index]!) >>> 0;
     const s0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
     const maj = (a & b) ^ (a & c) ^ (b & c);
     const temp2 = (s0 + maj) >>> 0;
@@ -68,14 +69,14 @@ function sha256Block(state: Uint32Array, block: Uint8Array, offset: number): voi
     a = (temp1 + temp2) >>> 0;
   }
 
-  state[0] = (uint32At(state, 0) + a) >>> 0;
-  state[1] = (uint32At(state, 1) + b) >>> 0;
-  state[2] = (uint32At(state, 2) + c) >>> 0;
-  state[3] = (uint32At(state, 3) + d) >>> 0;
-  state[4] = (uint32At(state, 4) + e) >>> 0;
-  state[5] = (uint32At(state, 5) + f) >>> 0;
-  state[6] = (uint32At(state, 6) + g) >>> 0;
-  state[7] = (uint32At(state, 7) + h) >>> 0;
+  state[0] = (state[0]! + a) >>> 0;
+  state[1] = (state[1]! + b) >>> 0;
+  state[2] = (state[2]! + c) >>> 0;
+  state[3] = (state[3]! + d) >>> 0;
+  state[4] = (state[4]! + e) >>> 0;
+  state[5] = (state[5]! + f) >>> 0;
+  state[6] = (state[6]! + g) >>> 0;
+  state[7] = (state[7]! + h) >>> 0;
 }
 
 export function sha256Digest(value: Uint8Array): Uint8Array {
@@ -100,7 +101,7 @@ export function sha256Digest(value: Uint8Array): Uint8Array {
   const digest = new Uint8Array(32);
   const digestView = new DataView(digest.buffer);
   for (let index = 0; index < state.length; index += 1) {
-    digestView.setUint32(index * 4, uint32At(state, index), false);
+    digestView.setUint32(index * 4, state[index]!, false);
   }
   return digest;
 }
@@ -167,7 +168,7 @@ export class Sha256Hasher {
     const digest = new Uint8Array(32);
     const digestView = new DataView(digest.buffer);
     for (let index = 0; index < this.state.length; index += 1) {
-      digestView.setUint32(index * 4, uint32At(this.state, index), false);
+      digestView.setUint32(index * 4, this.state[index]!, false);
     }
     return digest;
   }
@@ -181,13 +182,15 @@ function concatBytes(left: Uint8Array, right: Uint8Array): Uint8Array {
 }
 
 function normalizeHmacKey(key: Uint8Array): Uint8Array {
-  const normalized = key.length > BLOCK_SIZE ? sha256Digest(key) : key;
-  if (normalized.length === BLOCK_SIZE) {
-    return normalized;
+  if (key.length > BLOCK_SIZE) {
+    return sha256Digest(key);
+  }
+  if (key.length === BLOCK_SIZE) {
+    return key;
   }
 
   const padded = new Uint8Array(BLOCK_SIZE);
-  padded.set(normalized);
+  padded.set(key);
   return padded;
 }
 
@@ -196,9 +199,9 @@ export function hmacSha256Digest(value: Uint8Array, secret: Uint8Array): Uint8Ar
   const outer = new Uint8Array(BLOCK_SIZE);
   const inner = new Uint8Array(BLOCK_SIZE);
 
-  for (const [index, byte] of key.entries()) {
-    outer[index] = byte ^ 0x5c;
-    inner[index] = byte ^ 0x36;
+  for (let index = 0; index < BLOCK_SIZE; index += 1) {
+    outer[index] = key[index]! ^ 0x5c;
+    inner[index] = key[index]! ^ 0x36;
   }
 
   return sha256Digest(concatBytes(outer, sha256Digest(concatBytes(inner, value))));

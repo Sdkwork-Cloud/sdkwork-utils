@@ -39,20 +39,25 @@ export function getPath(source: unknown, path: string): unknown {
 
 export function setPath(source: JsonObject, path: string, value: unknown): JsonObject {
   const segments = path.split(".").filter(Boolean);
-  const lastSegment = segments.pop();
-  if (lastSegment === undefined) {
+  if (segments.length === 0) {
     return source;
   }
 
   const root: JsonObject = { ...source };
   let current: JsonObject = root;
-  for (const segment of segments) {
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    const segment = segments[index];
+    if (segment === undefined) {
+      continue;
+    }
     const next = current[segment];
-    const child = isObject(next) ? { ...next } : {};
-    current[segment] = child;
-    current = child;
+    current[segment] = isObject(next) ? { ...next } : {};
+    current = current[segment] as JsonObject;
   }
-  current[lastSegment] = value;
+  const leaf = segments[segments.length - 1];
+  if (leaf !== undefined) {
+    current[leaf] = value;
+  }
   return root;
 }
 

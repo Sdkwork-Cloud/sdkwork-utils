@@ -34,18 +34,11 @@ export function compact<T>(items: Array<T | null | undefined>): T[] {
 }
 
 export function first<T>(items: T[]): T | null {
-  for (const item of items) {
-    return item;
-  }
-  return null;
+  return items[0] ?? null;
 }
 
 export function last<T>(items: T[]): T | null {
-  let result: T | null = null;
-  for (const item of items) {
-    result = item;
-  }
-  return result;
+  return items.at(-1) ?? null;
 }
 
 export function sortBy<T>(items: T[], keyFn: (item: T) => string | number): T[] {

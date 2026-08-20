@@ -20,34 +20,38 @@ pub fn normalize_path(value: &str) -> String {
     }
 }
 
-const SDKWORK_SURFACE_PREFIXES: &[&str] = &["/app/v3/api", "/backend/v3/api", "/gateway/v3/api"];
-
-/// Collapses accidental duplicate SDKWork API surface prefixes in inbound paths.
+/// Collapse duplicate surface prefixes in a path.
 ///
-/// Clients that configure `baseUrl` as `https://host/app/v3/api` while operation
-/// paths also start with `/app/v3/api/...` produce `/app/v3/api/app/v3/api/...`.
-/// The web framework route manifest only registers the canonical single-prefix
-/// shape, so the doubled path must be normalized before auth classification.
-pub fn collapse_duplicate_surface_prefix(value: &str) -> String {
-    let (path, query) = split_path_and_query(value);
-    let mut collapsed = normalize_path(path);
-    for prefix in SDKWORK_SURFACE_PREFIXES {
-        let doubled = format!("{prefix}{prefix}");
-        while collapsed.starts_with(&doubled) {
-            collapsed = format!("{prefix}{}", &collapsed[doubled.len()..]);
+/// When a gateway mounts a surface at `/app/v3/api/generations` and the upstream
+/// also prefixes its routes with the same surface path, the inbound path can
+/// arrive doubled. This function detects and collapses the duplication so that
+/// downstream routing sees a single canonical prefix.
+pub fn collapse_duplicate_surface_prefix(path_and_query: &str) -> String {
+    let (path, query) = match path_and_query.split_once('?') {
+        Some((path, query)) => (path, Some(query)),
+        None => (path_and_query, None),
+    };
+
+    let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    if segments.len() < 4 {
+        return path_and_query.to_string();
+    }
+
+    // Try to find a duplicated prefix by checking if the first half matches the second half.
+    for prefix_len in (2..=segments.len() / 2).rev() {
+        let prefix = &segments[..prefix_len];
+        let remainder = &segments[prefix_len..];
+        if remainder.starts_with(prefix) {
+            let collapsed = remainder.join("/");
+            let result = format!("/{collapsed}");
+            return match query {
+                Some(q) => format!("{result}?{q}"),
+                None => result,
+            };
         }
     }
-    match query {
-        Some(query) if !query.is_empty() => format!("{collapsed}?{query}"),
-        _ => collapsed,
-    }
-}
 
-fn split_path_and_query(value: &str) -> (&str, Option<&str>) {
-    match value.split_once('?') {
-        Some((path, query)) => (path, Some(query)),
-        None => (value, None),
-    }
+    path_and_query.to_string()
 }
 
 #[cfg(test)]
@@ -61,22 +65,26 @@ mod tests {
     }
 
     #[test]
-    fn collapse_duplicate_surface_prefix_rewrites_doubled_app_api_paths() {
+    fn collapse_duplicate_surface_prefix_noop_on_clean_path() {
         assert_eq!(
-            collapse_duplicate_surface_prefix("/app/v3/api/app/v3/api/assets"),
-            "/app/v3/api/assets"
+            collapse_duplicate_surface_prefix("/app/v3/api/generations"),
+            "/app/v3/api/generations"
         );
+    }
+
+    #[test]
+    fn collapse_duplicate_surface_prefix_collapses_doubled_prefix() {
         assert_eq!(
-            collapse_duplicate_surface_prefix("/app/v3/api/app/v3/api/assets?page=1"),
-            "/app/v3/api/assets?page=1"
+            collapse_duplicate_surface_prefix("/app/v3/api/generations/app/v3/api/generations/123"),
+            "/app/v3/api/generations/123"
         );
+    }
+
+    #[test]
+    fn collapse_duplicate_surface_prefix_preserves_query() {
         assert_eq!(
-            collapse_duplicate_surface_prefix("/backend/v3/api/backend/v3/api/users"),
-            "/backend/v3/api/users"
-        );
-        assert_eq!(
-            collapse_duplicate_surface_prefix("/app/v3/api/assets"),
-            "/app/v3/api/assets"
+            collapse_duplicate_surface_prefix("/app/v3/api/generations/app/v3/api/generations?cursor=abc"),
+            "/app/v3/api/generations?cursor=abc"
         );
     }
 }
